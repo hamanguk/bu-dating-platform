@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { signInWithGoogle, firebaseSignOut } from '../services/firebase';
+import { signInWithGoogle, getGoogleRedirectResult, firebaseSignOut } from '../services/firebase';
 import { loginWithGoogle, getMe } from '../services/api';
 import { connectSocket, disconnectSocket } from '../services/socket';
 
@@ -31,6 +31,22 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     initAuth();
   }, [initAuth]);
+
+  // 모바일 Google 리다이렉트 로그인 결과 처리
+  useEffect(() => {
+    getGoogleRedirectResult()
+      .then(async (result) => {
+        if (!result) return;
+        const { data } = await loginWithGoogle(result.idToken);
+        localStorage.setItem('token', data.token);
+        setUser(data.user);
+        connectSocket(data.token);
+      })
+      .catch((err) => {
+        const msg = err.response?.data?.message || err.message || '로그인 실패';
+        setError(msg);
+      });
+  }, []);
 
   const login = async () => {
     setError(null);

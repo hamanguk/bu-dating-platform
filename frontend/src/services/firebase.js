@@ -1,5 +1,12 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
+  signOut,
+} from 'firebase/auth';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -14,14 +21,26 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 
-// @bu.ac.kr 이메일만 허용 (구글 OAuth hint)
 googleProvider.setCustomParameters({
   hd: import.meta.env.VITE_ALLOWED_DOMAIN || 'bu.ac.kr',
   prompt: 'select_account',
 });
 
+const isMobile = () => /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+
 export const signInWithGoogle = async () => {
+  if (isMobile()) {
+    await signInWithRedirect(auth, googleProvider);
+    return null; // 페이지가 리다이렉트되므로 여기서 끝
+  }
   const result = await signInWithPopup(auth, googleProvider);
+  const idToken = await result.user.getIdToken();
+  return { user: result.user, idToken };
+};
+
+export const getGoogleRedirectResult = async () => {
+  const result = await getRedirectResult(auth);
+  if (!result) return null;
   const idToken = await result.user.getIdToken();
   return { user: result.user, idToken };
 };
