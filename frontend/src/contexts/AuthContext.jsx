@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { signInWithGoogle, getGoogleRedirectResult, firebaseSignOut } from '../services/firebase';
-import { loginWithGoogle, getMe } from '../services/api';
+import { loginWithGoogle, getMe, pingServer } from '../services/api';
 import { connectSocket, disconnectSocket } from '../services/socket';
 
 const AuthContext = createContext(null);
@@ -29,11 +29,13 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
+    pingServer(); // Render 슬립 해제
     initAuth();
   }, [initAuth]);
 
   // 모바일 Google 리다이렉트 로그인 결과 처리
   useEffect(() => {
+    setLoading(true);
     getGoogleRedirectResult()
       .then(async (result) => {
         if (!result) return;
@@ -45,7 +47,8 @@ export const AuthProvider = ({ children }) => {
       .catch((err) => {
         const msg = err.response?.data?.message || err.message || '로그인 실패';
         setError(msg);
-      });
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   const login = async () => {

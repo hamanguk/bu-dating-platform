@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api',
-  withCredentials: true,
+  timeout: 60000, // Render 슬립 해제 대기 (최대 60초)
 });
 
 // JWT 토큰 자동 첨부
@@ -26,6 +26,9 @@ api.interceptors.response.use(
     return Promise.reject(err);
   }
 );
+
+// 앱 로드 시 Render 서버 미리 깨우기 (슬립 모드 해제)
+export const pingServer = () => api.get('/health').catch(() => {});
 
 // Auth
 export const loginWithGoogle = (idToken) => api.post('/auth/google', { idToken });
