@@ -1,6 +1,4 @@
 const Post = require('../models/Post');
-const fs = require('fs');
-const path = require('path');
 
 /**
  * GET /api/posts
@@ -91,7 +89,7 @@ exports.createPost = async (req, res) => {
       return res.status(400).json({ message: '타입과 제목은 필수입니다.' });
     }
 
-    const images = req.files?.map((f) => `/uploads/${f.filename}`) || [];
+    const images = req.files?.map((f) => f.path) || [];
 
     const post = await Post.create({
       author: req.user._id,
@@ -108,13 +106,6 @@ exports.createPost = async (req, res) => {
 
     res.status(201).json({ message: '게시물이 작성되었습니다.', post });
   } catch (err) {
-    // 업로드된 파일 정리
-    if (req.files) {
-      req.files.forEach((f) => {
-        const filePath = path.join(__dirname, '../../uploads', f.filename);
-        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-      });
-    }
     console.error('Create post error:', err);
     res.status(500).json({ message: '게시물 작성 중 오류가 발생했습니다.' });
   }

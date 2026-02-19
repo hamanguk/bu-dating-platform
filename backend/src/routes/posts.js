@@ -8,7 +8,7 @@ const {
 } = require('../controllers/postController');
 const { authenticate, requireCompleteProfile } = require('../middleware/auth');
 const { postLimiter } = require('../middleware/rateLimiter');
-const upload = require('../middleware/upload');
+const { upload } = require('../middleware/upload');
 
 router.get('/', authenticate, getPosts);
 router.get('/:id', authenticate, getPost);

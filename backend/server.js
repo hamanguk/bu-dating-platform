@@ -20,7 +20,8 @@ const { generalLimiter } = require('./src/middleware/rateLimiter');
 const app = express();
 const server = http.createServer(app);
 
-const corsOrigin = process.env.CLIENT_URL === '*' ? true : (process.env.CLIENT_URL || 'http://localhost:5173');
+const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:5173').split(',').map(o => o.trim());
+const corsOrigin = allowedOrigins.includes('*') ? true : allowedOrigins;
 
 const io = new Server(server, {
   cors: {
@@ -41,7 +42,7 @@ app.use(cors({
 }));
 
 // Logging & parsing
-app.use(morgan('dev'));
+app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 

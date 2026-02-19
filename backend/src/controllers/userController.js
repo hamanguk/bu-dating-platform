@@ -1,6 +1,5 @@
 const User = require('../models/User');
-const fs = require('fs');
-const path = require('path');
+const { cloudinary } = require('../middleware/upload');
 
 /**
  * PUT /api/users/profile
@@ -49,13 +48,13 @@ exports.uploadProfileImage = async (req, res) => {
       return res.status(400).json({ message: '이미지 파일을 선택해주세요.' });
     }
 
-    const imageUrl = `/uploads/${req.file.filename}`;
+    const imageUrl = req.file.path;
 
-    // 이전 이미지 삭제 (구글 URL 제외)
+    // 이전 Cloudinary 이미지 삭제
     const user = await User.findById(req.user._id);
-    if (user.profileImage && user.profileImage.startsWith('/uploads/')) {
-      const oldPath = path.join(__dirname, '../../', user.profileImage);
-      if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+    if (user.profileImage && user.profileImage.includes('cloudinary.com')) {
+      const publicId = user.profileImage.split('/').slice(-2).join('/').replace(/\.[^/.]+$/, '');
+      await cloudinary.uploader.destroy(publicId).catch(() => {});
     }
 
     await User.findByIdAndUpdate(req.user._id, { profileImage: imageUrl });
