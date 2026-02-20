@@ -11,16 +11,26 @@ export const AuthProvider = ({ children }) => {
   const [error, setError] = useState(null);
 
   const initAuth = useCallback(async () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setLoading(false);
-      return;
-    }
     try {
+      // 1. 모바일 Google 리다이렉트 결과 먼저 확인
+      const redirectResult = await getGoogleRedirectResult();
+      if (redirectResult) {
+        const { data } = await loginWithGoogle(redirectResult.idToken);
+        localStorage.setItem('token', data.token);
+        setUser(data.user);
+        connectSocket(data.token);
+        return;
+      }
+
+      // 2. 기존 로그인 세션 확인
+      const token = localStorage.getItem('token');
+      if (!token) return;
       const { data } = await getMe();
       setUser(data.user);
       connectSocket(token);
-    } catch {
+    } catch (err) {
+      const msg = err.response?.data?.message || err.message || '';
+      if (msg) setError(msg);
       localStorage.removeItem('token');
       localStorage.removeItem('user');
     } finally {
@@ -33,33 +43,14 @@ export const AuthProvider = ({ children }) => {
     initAuth();
   }, [initAuth]);
 
-  // 모바일 Google 리다이렉트 로그인 결과 처리
-  useEffect(() => {
-    setLoading(true);
-    getGoogleRedirectResult()
-      .then(async (result) => {
-        if (!result) return;
-        const { data } = await loginWithGoogle(result.idToken);
-        localStorage.setItem('token', data.token);
-        setUser(data.user);
-        connectSocket(data.token);
-      })
-      .catch((err) => {
-        const msg = err.response?.data?.message || err.message || '로그인 실패';
-        setError(msg);
-      })
-      .finally(() => setLoading(false));
-  }, []);
-
   const login = async () => {
     setError(null);
     try {
-      // 1. Firebase Google 로그인 → ID 토큰 획득
-      const { idToken } = await signInWithGoogle();
+      // 모바일은 signInWithRedirect → null 반환 (페이지 이동됨)
+      const result = await signInWithGoogle();
+      if (!result) return null;
 
-      // 2. 서버에 ID 토큰 전송 → 자체 JWT 발급
-      const { data } = await loginWithGoogle(idToken);
-
+      const { data } = await loginWithGoogle(result.idToken);
       localStorage.setItem('token', data.token);
       setUser(data.user);
       connectSocket(data.token);
