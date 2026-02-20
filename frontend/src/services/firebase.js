@@ -4,7 +4,6 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
   signInWithRedirect,
-  getRedirectResult,
   signOut,
 } from 'firebase/auth';
 
@@ -34,15 +33,7 @@ export const signInWithGoogle = async () => {
     return null; // 페이지가 리다이렉트되므로 여기서 끝
   }
   const result = await signInWithPopup(auth, googleProvider);
-  const idToken = await result.user.getIdToken();
-  return { user: result.user, idToken };
-};
-
-export const getGoogleRedirectResult = async () => {
-  const result = await getRedirectResult(auth);
-  if (!result) return null;
-  const idToken = await result.user.getIdToken();
-  return { user: result.user, idToken };
+  return result.user; // onAuthStateChanged가 idToken 처리
 };
 
 export const firebaseSignOut = () => signOut(auth);

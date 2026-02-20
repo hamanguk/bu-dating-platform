@@ -1,5 +1,6 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { signInWithGoogle, getGoogleRedirectResult, firebaseSignOut } from '../services/firebase';
+import { createContext, useContext, useState, useEffect } from 'react';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth, signInWithGoogle, firebaseSignOut } from '../services/firebase';
 import { loginWithGoogle, getMe, pingServer } from '../services/api';
 import { connectSocket, disconnectSocket } from '../services/socket';
 
@@ -10,51 +11,58 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const initAuth = useCallback(async () => {
-    try {
-      // 1. 모바일 Google 리다이렉트 결과 먼저 확인
-      const redirectResult = await getGoogleRedirectResult();
-      if (redirectResult) {
-        const { data } = await loginWithGoogle(redirectResult.idToken);
-        localStorage.setItem('token', data.token);
-        setUser(data.user);
-        connectSocket(data.token);
-        return;
-      }
-
-      // 2. 기존 로그인 세션 확인
-      const token = localStorage.getItem('token');
-      if (!token) return;
-      const { data } = await getMe();
-      setUser(data.user);
-      connectSocket(token);
-    } catch (err) {
-      const msg = err.response?.data?.message || err.message || '';
-      if (msg) setError(msg);
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
     pingServer(); // Render 슬립 해제
-    initAuth();
-  }, [initAuth]);
+
+    // Firebase 인증 상태 감지 - 팝업/리다이렉트 모두 자동 처리
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      try {
+        if (firebaseUser) {
+          // 기존 JWT가 유효하면 그대로 사용
+          const token = localStorage.getItem('token');
+          if (token) {
+            try {
+              const { data } = await getMe();
+              setUser(data.user);
+              connectSocket(token);
+              return;
+            } catch {
+              // JWT 만료 → Firebase 토큰으로 재발급
+              localStorage.removeItem('token');
+            }
+          }
+
+          // Firebase 토큰으로 자체 JWT 발급
+          const idToken = await firebaseUser.getIdToken();
+          const { data } = await loginWithGoogle(idToken);
+          localStorage.setItem('token', data.token);
+          setUser(data.user);
+          connectSocket(data.token);
+        } else {
+          // Firebase 로그아웃 상태
+          localStorage.removeItem('token');
+          setUser(null);
+        }
+      } catch (err) {
+        const msg = err.response?.data?.message || err.message || '';
+        if (msg) setError(msg);
+        await firebaseSignOut().catch(() => {});
+        localStorage.removeItem('token');
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const login = async () => {
     setError(null);
     try {
-      // 모바일은 signInWithRedirect → null 반환 (페이지 이동됨)
-      const result = await signInWithGoogle();
-      if (!result) return null;
-
-      const { data } = await loginWithGoogle(result.idToken);
-      localStorage.setItem('token', data.token);
-      setUser(data.user);
-      connectSocket(data.token);
-      return data.user;
+      // 모바일: signInWithRedirect → 페이지 이동 → onAuthStateChanged가 처리
+      // 데스크톱: signInWithPopup → onAuthStateChanged가 처리
+      return await signInWithGoogle();
     } catch (err) {
       const msg =
         err.response?.data?.message ||

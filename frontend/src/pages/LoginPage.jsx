@@ -7,21 +7,24 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const [loginLoading, setLoginLoading] = useState(false);
 
+  // onAuthStateChanged가 user를 설정하면 자동으로 이동
   useEffect(() => {
-    if (!loading && user) navigate('/', { replace: true });
+    if (!loading && user) {
+      if (user.profileComplete) {
+        navigate('/', { replace: true });
+      } else {
+        navigate('/profile', { replace: true });
+      }
+    }
   }, [user, loading, navigate]);
 
   const handleLogin = async () => {
     setError(null);
     setLoginLoading(true);
     try {
-      const loggedUser = await login();
-      if (!loggedUser) return; // 모바일: 리다이렉트로 페이지 이동됨
-      if (loggedUser.profileComplete) {
-        navigate('/', { replace: true });
-      } else {
-        navigate('/profile', { replace: true });
-      }
+      await login();
+      // 모바일: 페이지가 redirect됨 (Google 로그인 후 돌아오면 onAuthStateChanged가 처리)
+      // 데스크톱: onAuthStateChanged → user 설정 → useEffect에서 자동 navigate
     } catch {
       /* error is set in context */
     } finally {
