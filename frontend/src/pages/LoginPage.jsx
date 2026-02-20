@@ -22,9 +22,14 @@ export default function LoginPage() {
     setError(null);
     setLoginLoading(true);
     try {
-      await login();
-      // 모바일: 페이지가 redirect됨 (Google 로그인 후 돌아오면 onAuthStateChanged가 처리)
-      // 데스크톱: onAuthStateChanged → user 설정 → useEffect에서 자동 navigate
+      const loggedUser = await login();
+      if (!loggedUser) return; // 모바일: redirect로 페이지 이동됨
+      // 데스크톱: login()이 user를 직접 반환 → navigate
+      if (loggedUser.profileComplete) {
+        navigate('/', { replace: true });
+      } else {
+        navigate('/profile', { replace: true });
+      }
     } catch {
       /* error is set in context */
     } finally {

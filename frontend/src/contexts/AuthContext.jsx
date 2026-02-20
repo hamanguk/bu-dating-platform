@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth, signInWithGoogle, firebaseSignOut } from '../services/firebase';
 import { loginWithGoogle, getMe, pingServer } from '../services/api';
@@ -10,45 +10,49 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const loginInProgress = useRef(false); // 데스크톱 팝업 로그인 중 플래그
 
   useEffect(() => {
-    pingServer(); // Render 슬립 해제
+    pingServer(); // Render 슬립 해제 (fire and forget)
 
-    // Firebase 인증 상태 감지 - 팝업/리다이렉트 모두 자동 처리
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      // 데스크톱 팝업 로그인은 login()에서 직접 처리 중 → 여기서 건너뜀
+      if (loginInProgress.current) {
+        setLoading(false);
+        return;
+      }
+
       try {
         if (firebaseUser) {
-          // 기존 JWT가 유효하면 그대로 사용
           const token = localStorage.getItem('token');
-          if (token) {
-            try {
-              const { data } = await getMe();
-              setUser(data.user);
-              connectSocket(token);
-              return;
-            } catch {
-              // JWT 만료 → Firebase 토큰으로 재발급
-              localStorage.removeItem('token');
-            }
-          }
 
-          // Firebase 토큰으로 자체 JWT 발급
-          const idToken = await firebaseUser.getIdToken();
-          const { data } = await loginWithGoogle(idToken);
-          localStorage.setItem('token', data.token);
-          setUser(data.user);
-          connectSocket(data.token);
+          if (token) {
+            // 기존 로그인 세션 (앱 재실행 시)
+            const { data } = await getMe();
+            setUser(data.user);
+            connectSocket(token);
+          } else {
+            // 모바일 리다이렉트 후 돌아온 경우 → JWT 발급
+            const idToken = await firebaseUser.getIdToken();
+            const { data } = await loginWithGoogle(idToken);
+            localStorage.setItem('token', data.token);
+            setUser(data.user);
+            connectSocket(data.token);
+          }
         } else {
-          // Firebase 로그아웃 상태
+          // 로그아웃 상태
           localStorage.removeItem('token');
           setUser(null);
         }
       } catch (err) {
         const msg = err.response?.data?.message || err.message || '';
         if (msg) setError(msg);
-        await firebaseSignOut().catch(() => {});
         localStorage.removeItem('token');
         setUser(null);
+        // 도메인 오류(403)일 때만 Firebase도 로그아웃 (네트워크 오류는 로그아웃 X)
+        if (err.response?.status === 403) {
+          await firebaseSignOut().catch(() => {});
+        }
       } finally {
         setLoading(false);
       }
@@ -60,9 +64,23 @@ export const AuthProvider = ({ children }) => {
   const login = async () => {
     setError(null);
     try {
-      // 모바일: signInWithRedirect → 페이지 이동 → onAuthStateChanged가 처리
-      // 데스크톱: signInWithPopup → onAuthStateChanged가 처리
-      return await signInWithGoogle();
+      loginInProgress.current = true;
+
+      const firebaseUser = await signInWithGoogle();
+
+      if (!firebaseUser) {
+        // 모바일: signInWithRedirect로 페이지 이동됨 → onAuthStateChanged가 처리
+        loginInProgress.current = false;
+        return null;
+      }
+
+      // 데스크톱: 팝업 완료 → 직접 백엔드 호출
+      const idToken = await firebaseUser.getIdToken();
+      const { data } = await loginWithGoogle(idToken);
+      localStorage.setItem('token', data.token);
+      setUser(data.user);
+      connectSocket(data.token);
+      return data.user;
     } catch (err) {
       const msg =
         err.response?.data?.message ||
@@ -70,6 +88,8 @@ export const AuthProvider = ({ children }) => {
         '로그인에 실패했습니다. bu.ac.kr 이메일을 사용해주세요.';
       setError(msg);
       throw new Error(msg);
+    } finally {
+      loginInProgress.current = false;
     }
   };
 

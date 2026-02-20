@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api',
-  timeout: 60000, // Render 슬립 해제 대기 (최대 60초)
+  timeout: 90000, // Render 슬립 해제 대기 (최대 90초)
 });
 
 // JWT 토큰 자동 첨부
