@@ -16,7 +16,7 @@ export const AuthProvider = ({ children }) => {
     pingServer(); // Render 슬립 해제 (fire and forget)
 
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      // 데스크톱 팝업 로그인은 login()에서 직접 처리 중 → 여기서 건너뜀
+      // 팝업 로그인은 login()에서 직접 처리 중 → 여기서 건너뜀
       if (loginInProgress.current) {
         setLoading(false);
         return;
@@ -25,20 +25,13 @@ export const AuthProvider = ({ children }) => {
       try {
         if (firebaseUser) {
           const token = localStorage.getItem('token');
-
           if (token) {
             // 기존 로그인 세션 (앱 재실행 시)
             const { data } = await getMe();
             setUser(data.user);
             connectSocket(token);
-          } else {
-            // 모바일 리다이렉트 후 돌아온 경우 → JWT 발급
-            const idToken = await firebaseUser.getIdToken();
-            const { data } = await loginWithGoogle(idToken);
-            localStorage.setItem('token', data.token);
-            setUser(data.user);
-            connectSocket(data.token);
           }
+          // token 없이 firebaseUser만 있는 경우는 무시 (팝업 로그인은 login()이 처리)
         } else {
           // 로그아웃 상태
           localStorage.removeItem('token');
@@ -65,16 +58,7 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     try {
       loginInProgress.current = true;
-
       const firebaseUser = await signInWithGoogle();
-
-      if (!firebaseUser) {
-        // 모바일: signInWithRedirect로 페이지 이동됨 → onAuthStateChanged가 처리
-        loginInProgress.current = false;
-        return null;
-      }
-
-      // 데스크톱: 팝업 완료 → 직접 백엔드 호출
       const idToken = await firebaseUser.getIdToken();
       const { data } = await loginWithGoogle(idToken);
       localStorage.setItem('token', data.token);

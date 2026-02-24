@@ -23,8 +23,6 @@ export default function LoginPage() {
     setLoginLoading(true);
     try {
       const loggedUser = await login();
-      if (!loggedUser) return; // 모바일: redirect로 페이지 이동됨
-      // 데스크톱: login()이 user를 직접 반환 → navigate
       if (loggedUser.profileComplete) {
         navigate('/', { replace: true });
       } else {
