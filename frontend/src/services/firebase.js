@@ -3,6 +3,7 @@ import {
   getAuth,
   GoogleAuthProvider,
   signInWithPopup,
+  signInWithRedirect,
   signOut,
 } from 'firebase/auth';
 
@@ -24,7 +25,13 @@ googleProvider.setCustomParameters({
   prompt: 'select_account',
 });
 
+const isMobile = () => /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
 export const signInWithGoogle = async () => {
+  if (isMobile()) {
+    await signInWithRedirect(auth, googleProvider);
+    return null; // 페이지 이동 → onAuthStateChanged가 복귀 후 처리
+  }
   const result = await signInWithPopup(auth, googleProvider);
   return result.user;
 };

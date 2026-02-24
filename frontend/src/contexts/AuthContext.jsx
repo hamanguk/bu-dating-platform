@@ -6,6 +6,18 @@ import { connectSocket, disconnectSocket } from '../services/socket';
 
 const AuthContext = createContext(null);
 
+// 네트워크 에러 시 최대 2회 재시도 (3초 간격), HTTP 에러는 재시도 안 함
+const withRetry = async (fn, retries = 2) => {
+  for (let i = 0; i <= retries; i++) {
+    try {
+      return await fn();
+    } catch (err) {
+      if (i === retries || err.response) throw err;
+      await new Promise((r) => setTimeout(r, 3000));
+    }
+  }
+};
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -16,7 +28,7 @@ export const AuthProvider = ({ children }) => {
     pingServer(); // Render 슬립 해제 (fire and forget)
 
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      // 팝업 로그인은 login()에서 직접 처리 중 → 여기서 건너뜀
+      // 데스크톱 팝업 로그인은 login()에서 직접 처리 중 → 여기서 건너뜀
       if (loginInProgress.current) {
         setLoading(false);
         return;
@@ -25,13 +37,20 @@ export const AuthProvider = ({ children }) => {
       try {
         if (firebaseUser) {
           const token = localStorage.getItem('token');
+
           if (token) {
             // 기존 로그인 세션 (앱 재실행 시)
-            const { data } = await getMe();
+            const { data } = await withRetry(() => getMe());
             setUser(data.user);
             connectSocket(token);
+          } else {
+            // 모바일 리다이렉트 후 복귀 → JWT 발급
+            const idToken = await firebaseUser.getIdToken();
+            const { data } = await withRetry(() => loginWithGoogle(idToken));
+            localStorage.setItem('token', data.token);
+            setUser(data.user);
+            connectSocket(data.token);
           }
-          // token 없이 firebaseUser만 있는 경우는 무시 (팝업 로그인은 login()이 처리)
         } else {
           // 로그아웃 상태
           localStorage.removeItem('token');
@@ -58,9 +77,18 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     try {
       loginInProgress.current = true;
+
       const firebaseUser = await signInWithGoogle();
+
+      if (!firebaseUser) {
+        // 모바일: signInWithRedirect로 페이지 이동됨 → onAuthStateChanged가 처리
+        loginInProgress.current = false;
+        return null;
+      }
+
+      // 데스크톱: 팝업 완료 → 직접 백엔드 호출 (재시도 포함)
       const idToken = await firebaseUser.getIdToken();
-      const { data } = await loginWithGoogle(idToken);
+      const { data } = await withRetry(() => loginWithGoogle(idToken));
       localStorage.setItem('token', data.token);
       setUser(data.user);
       connectSocket(data.token);
