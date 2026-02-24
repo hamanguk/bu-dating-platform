@@ -8,7 +8,8 @@ const connectDB = async () => {
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {
     console.error('❌ MongoDB connection error:', error.message);
-    process.exit(1);
+    // process.exit 대신 5초 후 재시도 (Render 슬립 해제 후 자동 복구)
+    setTimeout(connectDB, 5000);
   }
 };
 
