@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useRef } from 'react';
-import { onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged, getRedirectResult } from 'firebase/auth';
 import { auth, signInWithGoogle, firebaseSignOut } from '../services/firebase';
 import { loginWithGoogle, getMe, pingServer } from '../services/api';
 import { connectSocket, disconnectSocket } from '../services/socket';
@@ -13,6 +13,7 @@ const withRetry = async (fn, retries = 2) => {
       return await fn();
     } catch (err) {
       if (i === retries || err.response) throw err;
+      console.warn(`⏳ 재시도 ${i + 1}/${retries}...`);
       await new Promise((r) => setTimeout(r, 3000));
     }
   }
@@ -22,14 +23,17 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const loginInProgress = useRef(false); // 데스크톱 팝업 로그인 중 플래그
+  const loginInProgress = useRef(false);   // 데스크톱 팝업 진행 중
+  const redirectProcessed = useRef(false); // 리다이렉트 결과 처리 완료 여부
 
   useEffect(() => {
-    pingServer(); // Render 슬립 해제 (fire and forget)
+    pingServer(); // Render 슬립 해제
 
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      // 데스크톱 팝업 로그인은 login()에서 직접 처리 중 → 여기서 건너뜀
-      if (loginInProgress.current) {
+      console.log('🔔 onAuthStateChanged:', firebaseUser?.email ?? 'null');
+
+      // 데스크톱 팝업 또는 getRedirectResult로 이미 처리 중이면 건너뜀
+      if (loginInProgress.current || redirectProcessed.current) {
         setLoading(false);
         return;
       }
@@ -40,11 +44,15 @@ export const AuthProvider = ({ children }) => {
 
           if (token) {
             // 기존 로그인 세션 (앱 재실행 시)
+            console.log('✅ 기존 세션 복원:', firebaseUser.email);
             const { data } = await withRetry(() => getMe());
             setUser(data.user);
             connectSocket(token);
           } else {
-            // 모바일 리다이렉트 후 복귀 → JWT 발급
+            // 모바일 리다이렉트 복귀 백업 처리
+            // (processRedirectResult가 먼저 처리하면 redirectProcessed=true로 여기 안 옴)
+            console.log('🔄 onAuthStateChanged 백업 처리:', firebaseUser.email);
+            redirectProcessed.current = true;
             const idToken = await firebaseUser.getIdToken();
             const { data } = await withRetry(() => loginWithGoogle(idToken));
             localStorage.setItem('token', data.token);
@@ -52,16 +60,15 @@ export const AuthProvider = ({ children }) => {
             connectSocket(data.token);
           }
         } else {
-          // 로그아웃 상태
           localStorage.removeItem('token');
           setUser(null);
         }
       } catch (err) {
+        console.error('❌ onAuthStateChanged 에러:', err.code, err.message);
         const msg = err.response?.data?.message || err.message || '';
         if (msg) setError(msg);
         localStorage.removeItem('token');
         setUser(null);
-        // 도메인 오류(403)일 때만 Firebase도 로그아웃 (네트워크 오류는 로그아웃 X)
         if (err.response?.status === 403) {
           await firebaseSignOut().catch(() => {});
         }
@@ -73,6 +80,32 @@ export const AuthProvider = ({ children }) => {
     return () => unsubscribe();
   }, []);
 
+  // LoginPage의 useEffect에서 호출 — getRedirectResult 처리
+  const processRedirectResult = async () => {
+    try {
+      console.log('🔍 getRedirectResult 확인 중...');
+      const result = await getRedirectResult(auth);
+
+      if (!result) {
+        console.log('ℹ️ redirect result 없음 (데스크톱 또는 직접 접근)');
+        return null;
+      }
+
+      console.log('✅ RedirectResult 성공:', result.user.email);
+      redirectProcessed.current = true; // onAuthStateChanged 백업 처리 방지
+
+      const idToken = await result.user.getIdToken();
+      const { data } = await withRetry(() => loginWithGoogle(idToken));
+      localStorage.setItem('token', data.token);
+      setUser(data.user);
+      connectSocket(data.token);
+      return data.user;
+    } catch (err) {
+      console.error('❌ RedirectResult 에러:', err.code, err.message);
+      throw err;
+    }
+  };
+
   const login = async () => {
     setError(null);
     try {
@@ -81,12 +114,13 @@ export const AuthProvider = ({ children }) => {
       const firebaseUser = await signInWithGoogle();
 
       if (!firebaseUser) {
-        // 모바일: signInWithRedirect로 페이지 이동됨 → onAuthStateChanged가 처리
+        // 모바일: signInWithRedirect → 페이지 이동 → processRedirectResult가 복귀 후 처리
         loginInProgress.current = false;
         return null;
       }
 
-      // 데스크톱: 팝업 완료 → 직접 백엔드 호출 (재시도 포함)
+      // 데스크톱: 팝업 완료 → 직접 백엔드 호출
+      console.log('✅ Popup 로그인 성공:', firebaseUser.email);
       const idToken = await firebaseUser.getIdToken();
       const { data } = await withRetry(() => loginWithGoogle(idToken));
       localStorage.setItem('token', data.token);
@@ -94,6 +128,7 @@ export const AuthProvider = ({ children }) => {
       connectSocket(data.token);
       return data.user;
     } catch (err) {
+      console.error('❌ 로그인 에러:', err.code, err.message);
       const msg =
         err.response?.data?.message ||
         err.message ||
@@ -115,7 +150,9 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, setUser, loading, error, setError, login, logout }}>
+    <AuthContext.Provider
+      value={{ user, setUser, loading, error, setError, login, logout, processRedirectResult }}
+    >
       {children}
     </AuthContext.Provider>
   );

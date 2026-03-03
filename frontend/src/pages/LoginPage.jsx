@@ -3,21 +3,44 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function LoginPage() {
-  const { login, user, loading, error, setError } = useAuth();
+  const { login, user, loading, error, setError, processRedirectResult } = useAuth();
   const navigate = useNavigate();
   const [loginLoading, setLoginLoading] = useState(false);
+  const [redirectChecking, setRedirectChecking] = useState(true); // 초기 redirect 확인 중
 
-  // onAuthStateChanged가 user를 설정하면 자동으로 이동
+  // ① 모바일 redirect 복귀 처리 (앱 로드 시 1회 실행)
   useEffect(() => {
-    if (!loading && user) {
+    const checkRedirect = async () => {
+      try {
+        const loggedUser = await processRedirectResult();
+        if (loggedUser) {
+          console.log('✅ redirect 로그인 완료 →', loggedUser.profileComplete ? '/' : '/profile');
+          // navigate는 아래 user 감시 useEffect가 처리
+        }
+      } catch (err) {
+        console.error('❌ redirect 처리 실패:', err.message);
+        setError(err.response?.data?.message || err.message || '로그인에 실패했습니다.');
+      } finally {
+        setRedirectChecking(false);
+      }
+    };
+    checkRedirect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ② user가 설정되면 자동 화면 전환 (redirect, popup 모두 공통)
+  useEffect(() => {
+    if (!loading && !redirectChecking && user) {
+      console.log('➡️ 화면 전환:', user.profileComplete ? '/' : '/profile');
       if (user.profileComplete) {
         navigate('/', { replace: true });
       } else {
         navigate('/profile', { replace: true });
       }
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, redirectChecking, navigate]);
 
+  // ③ 버튼 클릭 — 데스크톱: popup / 모바일: redirect 시작
   const handleLogin = async () => {
     setError(null);
     setLoginLoading(true);
@@ -30,11 +53,13 @@ export default function LoginPage() {
         navigate('/profile', { replace: true });
       }
     } catch {
-      /* error is set in context */
+      /* error는 context에서 setError로 처리됨 */
     } finally {
       setLoginLoading(false);
     }
   };
+
+  const isLoading = loginLoading || redirectChecking;
 
   return (
     <div className="relative flex flex-col items-center justify-center min-h-screen w-full max-w-[430px] mx-auto bg-background-light dark:bg-background-dark px-6 overflow-hidden">
@@ -82,10 +107,10 @@ export default function LoginPage() {
         {/* 구글 로그인 버튼 */}
         <button
           onClick={handleLogin}
-          disabled={loginLoading}
+          disabled={isLoading}
           className="w-full h-14 rounded-full bg-white dark:bg-white/10 border border-gray-200 dark:border-white/20 flex items-center justify-center gap-3 shadow-lg font-bold text-[#1d0c0f] dark:text-white hover:bg-gray-50 dark:hover:bg-white/20 transition-all active:scale-95 disabled:opacity-60"
         >
-          {loginLoading ? (
+          {isLoading ? (
             <span className="material-symbols-outlined animate-spin text-primary">progress_activity</span>
           ) : (
             <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -95,7 +120,7 @@ export default function LoginPage() {
               <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
             </svg>
           )}
-          {loginLoading ? '로그인 중...' : 'Google로 로그인 (bu.ac.kr)'}
+          {redirectChecking ? '로그인 확인 중...' : loginLoading ? '재시도 중...' : 'Google로 로그인 (bu.ac.kr)'}
         </button>
 
         <p className="text-xs text-gray-400 text-center leading-relaxed">
