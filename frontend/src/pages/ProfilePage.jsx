@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { updateProfile, uploadProfileImage } from '../services/api';
 
@@ -7,6 +8,7 @@ const MBTI_LIST = ['INTJ','INTP','ENTJ','ENTP','INFJ','INFP','ENFJ','ENFP',
 
 export default function ProfilePage() {
   const { user, setUser, logout } = useAuth();
+  const navigate = useNavigate();
   const fileRef = useRef(null);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState('');
@@ -44,8 +46,13 @@ export default function ProfilePage() {
       };
       const { data } = await updateProfile(payload);
       setUser(data.user);
-      setSuccess('프로필이 저장되었습니다!');
-      setTimeout(() => setSuccess(''), 3000);
+      // 프로필 완성 여부에 따라 홈 또는 잠시 성공 메시지 표시
+      if (data.user?.profileComplete) {
+        navigate('/', { replace: true });
+      } else {
+        setSuccess('프로필이 저장되었습니다!');
+        setTimeout(() => setSuccess(''), 3000);
+      }
     } catch (err) {
       setError(err.response?.data?.message || '저장 중 오류가 발생했습니다.');
     } finally {
