@@ -20,8 +20,19 @@ const { generalLimiter } = require('./src/middleware/rateLimiter');
 const app = express();
 const server = http.createServer(app);
 
-const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:5173').split(',').map(o => o.trim());
-const corsOrigin = allowedOrigins.includes('*') ? true : allowedOrigins;
+const envOrigins = process.env.CLIENT_URL
+  ? process.env.CLIENT_URL.split(',').map(o => o.trim())
+  : [];
+const allowedOrigins = ['http://localhost:5173', 'http://localhost:3000', ...envOrigins];
+
+// origin 함수: 화이트리스트 + *.vercel.app 전체 허용
+const corsOrigin = (origin, callback) => {
+  if (!origin) return callback(null, true); // curl, Postman 등
+  if (allowedOrigins.includes(origin) || /\.vercel\.app$/.test(origin)) {
+    return callback(null, true);
+  }
+  return callback(new Error(`CORS: origin ${origin} not allowed`));
+};
 
 const io = new Server(server, {
   cors: {
