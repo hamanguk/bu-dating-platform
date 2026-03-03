@@ -69,5 +69,7 @@ export const updateReportStatus = (id, status) => api.patch(`/admin/reports/${id
 export const suspendUser = (id, days) => api.post(`/admin/users/${id}/suspend`, { days });
 export const unsuspendUser = (id) => api.post(`/admin/users/${id}/unsuspend`);
 export const adminDeletePost = (id) => api.delete(`/admin/posts/${id}`);
+export const getAdminUsers = (params) => api.get('/admin/users', { params });
+export const getAdminChatLogs = (params) => api.get('/admin/chat-logs', { params });
 
 export default api;

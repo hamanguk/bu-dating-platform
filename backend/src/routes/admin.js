@@ -6,12 +6,16 @@ const {
   deletePost,
   updateReportStatus,
   getStats,
+  getUsers,
+  getChatLogs,
 } = require('../controllers/adminController');
 const { authenticate, requireAdmin } = require('../middleware/auth');
 
 router.use(authenticate, requireAdmin);
 
 router.get('/stats', getStats);
+router.get('/users', getUsers);
+router.get('/chat-logs', getChatLogs);
 router.get('/reports', getReports);
 router.patch('/reports/:id', updateReportStatus);
 router.post('/users/:id/suspend', suspendUser);

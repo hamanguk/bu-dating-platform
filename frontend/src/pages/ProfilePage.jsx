@@ -112,6 +112,19 @@ export default function ProfilePage() {
         </div>
       </div>
 
+      {/* 관리자 패널 버튼 */}
+      {user?.role === 'admin' && (
+        <div className="px-4">
+          <button
+            onClick={() => navigate('/admin')}
+            className="w-full flex items-center justify-center gap-2 h-12 bg-[#2d161a] text-white font-bold rounded-xl shadow-sm"
+          >
+            <span className="material-symbols-outlined text-[20px]">admin_panel_settings</span>
+            관리자 패널
+          </button>
+        </div>
+      )}
+
       {/* 폼 */}
       <div className="px-4 space-y-4">
         {error && (

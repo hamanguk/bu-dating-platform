@@ -1,6 +1,8 @@
 const User = require('../models/User');
 const Post = require('../models/Post');
 const Report = require('../models/Report');
+const Message = require('../models/Message');
+const ChatRoom = require('../models/ChatRoom');
 
 /**
  * GET /api/admin/reports
@@ -99,18 +101,65 @@ exports.updateReportStatus = async (req, res) => {
 };
 
 /**
+ * GET /api/admin/users
+ * 전체 사용자 목록
+ */
+exports.getUsers = async (req, res) => {
+  try {
+    const { page = 1, limit = 50 } = req.query;
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const [users, total] = await Promise.all([
+      User.find()
+        .select('name email department role isSuspended suspendedUntil profileComplete createdAt')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(parseInt(limit)),
+      User.countDocuments(),
+    ]);
+    res.json({ users, total, page: parseInt(page) });
+  } catch (err) {
+    res.status(500).json({ message: '사용자 목록을 불러오는 중 오류가 발생했습니다.' });
+  }
+};
+
+/**
+ * GET /api/admin/chat-logs
+ * 최근 채팅 메시지 로그
+ */
+exports.getChatLogs = async (req, res) => {
+  try {
+    const { page = 1, limit = 100 } = req.query;
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const messages = await Message.find()
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit))
+      .populate('sender', 'name email')
+      .populate({
+        path: 'roomId',
+        select: 'participants type',
+        populate: { path: 'participants', select: 'name email' },
+      });
+    res.json({ messages });
+  } catch (err) {
+    res.status(500).json({ message: '채팅 로그를 불러오는 중 오류가 발생했습니다.' });
+  }
+};
+
+/**
  * GET /api/admin/stats
  * 대시보드 통계
  */
 exports.getStats = async (req, res) => {
   try {
-    const [totalUsers, totalPosts, pendingReports, suspendedUsers] = await Promise.all([
+    const [totalUsers, totalPosts, pendingReports, suspendedUsers, activeChatRooms] = await Promise.all([
       User.countDocuments(),
       Post.countDocuments({ isDeleted: false }),
       Report.countDocuments({ status: 'pending' }),
       User.countDocuments({ isSuspended: true }),
+      ChatRoom.countDocuments({ isActive: true }),
     ]);
-    res.json({ totalUsers, totalPosts, pendingReports, suspendedUsers });
+    res.json({ totalUsers, totalPosts, pendingReports, suspendedUsers, activeChatRooms });
   } catch (err) {
     res.status(500).json({ message: '통계를 불러오는 중 오류가 발생했습니다.' });
   }
