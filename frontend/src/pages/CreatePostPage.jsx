@@ -15,7 +15,7 @@ export default function CreatePostPage() {
     title: '',
     description: '',
     participantsCount: 3,
-    genderPreference: 'any',
+    genderPreference: '',
     isAnonymous: false,
   });
 
@@ -103,13 +103,13 @@ export default function CreatePostPage() {
           <h3 className="text-sm font-bold text-[#a14553] uppercase tracking-wider mb-3">유형 선택</h3>
           <div className="flex bg-black/5 dark:bg-white/5 p-1.5 rounded-full">
             <button
-              onClick={() => setForm((p) => ({ ...p, type: 'one' }))}
+              onClick={() => setForm((p) => ({ ...p, type: 'one', genderPreference: '' }))}
               className={`flex-1 py-3 text-sm font-bold rounded-full transition-all ${form.type === 'one' ? 'bg-white dark:bg-[#3d262a] shadow-sm text-primary' : 'text-gray-500'}`}
             >
               1:1 소개팅
             </button>
             <button
-              onClick={() => setForm((p) => ({ ...p, type: 'group' }))}
+              onClick={() => setForm((p) => ({ ...p, type: 'group', genderPreference: '' }))}
               className={`flex-1 py-3 text-sm font-bold rounded-full transition-all ${form.type === 'group' ? 'bg-white dark:bg-[#3d262a] shadow-sm text-primary' : 'text-gray-500'}`}
             >
               과팅
@@ -185,10 +185,18 @@ export default function CreatePostPage() {
               onChange={handleChange}
               className="w-full bg-white dark:bg-[#2d161a] border-none rounded-xl h-12 px-4 text-sm font-medium focus:ring-2 focus:ring-primary shadow-sm dark:text-white"
             >
-              <option value="any">무관</option>
-              <option value="male">남성 그룹</option>
-              <option value="female">여성 그룹</option>
-              <option value="mixed">혼성 그룹</option>
+              <option value="">선택</option>
+              {form.type === 'one' ? (
+                <>
+                  <option value="male">남성</option>
+                  <option value="female">여성</option>
+                </>
+              ) : (
+                <>
+                  <option value="male">남성 그룹</option>
+                  <option value="female">여성 그룹</option>
+                </>
+              )}
             </select>
           </div>
           <div className="flex items-end">
@@ -223,7 +231,7 @@ export default function CreatePostPage() {
       </div>
 
       {/* 등록 버튼 */}
-      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] p-6 bg-gradient-to-t from-background-light dark:from-background-dark via-background-light/80 dark:via-background-dark/80 to-transparent z-30">
+      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] p-6 bg-gradient-to-t from-background-light dark:from-background-dark via-background-light/80 dark:via-background-dark/80 to-transparent z-50">
         <button
           onClick={handleSubmit}
           disabled={submitting}

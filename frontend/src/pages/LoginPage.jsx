@@ -53,14 +53,14 @@ export default function LoginPage() {
             <h1 className="text-3xl font-extrabold text-[#1d0c0f] dark:text-white tracking-tight">
               캠퍼스 데이트
             </h1>
-            <p className="text-primary font-semibold mt-1 text-sm">학교 인증 소개팅 플랫폼</p>
+            <p className="text-primary font-semibold mt-1 text-sm">백석대학교 인증 소개팅 플랫폼</p>
           </div>
         </div>
 
         {/* 설명 */}
         <div className="flex flex-col gap-3 w-full">
           {[
-            { icon: 'verified_user', text: '@bu.ac.kr 이메일 인증으로 신뢰할 수 있는 대학생' },
+            { icon: 'verified_user', text: '@bu.ac.kr 학교이메일 인증으로 신뢰할 수 있는 친구' },
             { icon: 'group', text: '1:1 소개팅부터 과팅까지 다양한 만남' },
             { icon: 'visibility_off', text: '익명/실명 선택으로 편안하게 소통' },
           ].map(({ icon, text }) => (
