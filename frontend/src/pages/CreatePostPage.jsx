@@ -59,13 +59,32 @@ export default function CreatePostPage() {
     setError('');
     try {
       const formData = new FormData();
-      Object.entries(form).forEach(([k, v]) => formData.append(k, v));
+      formData.append('type', form.type);
+      formData.append('title', form.title.trim());
+      formData.append('description', form.description.trim());
+      formData.append('participantsCount', form.type === 'group' ? form.participantsCount : 2);
+      formData.append('genderPreference', form.genderPreference || 'any');
+      formData.append('isAnonymous', form.isAnonymous);
       files.forEach((f) => formData.append('images', f));
 
-      await createPost(formData);
+      console.log('🚀 게시물 등록 요청:', {
+        type: form.type,
+        title: form.title,
+        genderPreference: form.genderPreference || 'any',
+        files: files.length,
+      });
+
+      const { data } = await createPost(formData);
+      console.log('✅ 게시물 등록 성공:', data);
       navigate('/', { replace: true });
     } catch (err) {
-      setError(err.response?.data?.message || '게시물 작성 중 오류가 발생했습니다.');
+      console.error('💥 게시물 등록 에러:', err.response?.status, err.response?.data);
+      const msg = err.response?.data?.message || err.message || '게시물 작성 중 오류가 발생했습니다.';
+      if (err.response?.data?.code === 'PROFILE_INCOMPLETE') {
+        setError('프로필을 먼저 완성해주세요. 프로필 페이지에서 학과를 입력하고 저장하세요.');
+      } else {
+        setError(`오류: ${msg}`);
+      }
     } finally {
       setSubmitting(false);
     }
