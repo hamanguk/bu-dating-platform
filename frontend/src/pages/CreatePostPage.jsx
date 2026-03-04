@@ -11,13 +11,15 @@ export default function CreatePostPage() {
   const [files, setFiles] = useState([]);
 
   const [form, setForm] = useState({
-    type: 'group',
+    type: 'one',
     title: '',
     description: '',
     participantsCount: 3,
     genderPreference: '',
     isAnonymous: false,
   });
+
+  const isValid = form.title.trim().length >= 1 && form.description.trim().length >= 10;
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -49,6 +51,10 @@ export default function CreatePostPage() {
       setError('제목을 입력해주세요.');
       return;
     }
+    if (form.description.trim().length < 10) {
+      setError('분위기 설명을 10자 이상 입력해주세요.');
+      return;
+    }
     setSubmitting(true);
     setError('');
     try {
@@ -56,8 +62,8 @@ export default function CreatePostPage() {
       Object.entries(form).forEach(([k, v]) => formData.append(k, v));
       files.forEach((f) => formData.append('images', f));
 
-      const { data } = await createPost(formData);
-      navigate(`/posts/${data.post._id}`, { replace: true });
+      await createPost(formData);
+      navigate('/', { replace: true });
     } catch (err) {
       setError(err.response?.data?.message || '게시물 작성 중 오류가 발생했습니다.');
     } finally {
@@ -65,8 +71,12 @@ export default function CreatePostPage() {
     }
   };
 
+  const typeLabel = form.type === 'one'
+    ? '1:1 소개팅'
+    : `과팅 (${form.participantsCount}:${form.participantsCount})`;
+
   return (
-    <div className="flex flex-col bg-background-light dark:bg-background-dark min-h-screen pb-32">
+    <div className="flex flex-col bg-background-light dark:bg-background-dark min-h-screen pb-40">
       {/* 헤더 */}
       <div className="sticky top-0 z-20 flex items-center bg-background-light/80 dark:bg-background-dark/80 ios-blur p-4 pb-2 justify-between">
         <button onClick={() => navigate(-1)} className="flex size-10 items-center justify-center rounded-full hover:bg-black/5">
@@ -88,12 +98,10 @@ export default function CreatePostPage() {
             <div className="p-4">
               <div className="flex items-center gap-2 mb-1">
                 <span className="size-2 rounded-full bg-green-500 animate-pulse" />
-                <p className="text-primary text-xs font-bold uppercase tracking-widest">현재 활성 중</p>
+                <p className="text-primary text-xs font-bold uppercase tracking-widest">미리보기</p>
               </div>
               <p className="text-[#1d0c0f] dark:text-white text-xl font-bold">{form.title}</p>
-              <p className="text-[#a14553] text-sm font-medium mt-1">
-                {form.participantsCount}:{form.participantsCount} {form.type === 'group' ? '과팅' : '소개팅'}
-              </p>
+              <p className="text-[#a14553] text-sm font-medium mt-1">{typeLabel}</p>
             </div>
           </div>
         )}
@@ -158,7 +166,7 @@ export default function CreatePostPage() {
           <input ref={fileRef} type="file" accept=".jpg,.jpeg,.png" multiple className="hidden" onChange={handleImageSelect} />
         </section>
 
-        {/* 인원수 & 성별 선택 */}
+        {/* 인원수 선택 (과팅만) */}
         {form.type === 'group' && (
           <section>
             <h3 className="text-sm font-bold text-[#a14553] uppercase tracking-wider mb-3">인원수 선택</h3>
@@ -176,6 +184,7 @@ export default function CreatePostPage() {
           </section>
         )}
 
+        {/* 성별 선택 */}
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1">
             <label className="text-xs font-bold text-[#a14553] uppercase tracking-wider">성별</label>
@@ -209,15 +218,16 @@ export default function CreatePostPage() {
 
         {/* 분위기 설명 */}
         <section>
-          <h3 className="text-sm font-bold text-[#a14553] uppercase tracking-wider mb-2">분위기 설명</h3>
+          <h3 className="text-sm font-bold text-[#a14553] uppercase tracking-wider mb-2">분위기 설명 *</h3>
           <textarea
             name="description"
             value={form.description}
             onChange={handleChange}
             maxLength={1000}
-            placeholder="예: 에너지 넘치는 공대생들이에요! 시원한 루프탑에서 같이 놀아요."
+            placeholder="예: 에너지 넘치는 공대생들이에요! 시원한 루프탑에서 같이 놀아요. (최소 10자)"
             className="w-full bg-white dark:bg-[#2d161a] border-none rounded-xl p-4 text-sm font-medium focus:ring-2 focus:ring-primary shadow-sm min-h-[100px] resize-none dark:text-white"
           />
+          <p className="text-xs text-gray-400 mt-1 text-right">{form.description.length}/1000</p>
         </section>
 
         {/* 익명 */}
@@ -230,19 +240,21 @@ export default function CreatePostPage() {
         </label>
       </div>
 
-      {/* 등록 버튼 */}
-      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] p-6 bg-gradient-to-t from-background-light dark:from-background-dark via-background-light/80 dark:via-background-dark/80 to-transparent z-50">
+      {/* 게시물 올리기 버튼 — 하단 탭바 위에 고정 */}
+      <div className="fixed left-1/2 -translate-x-1/2 w-full max-w-[480px] px-4 z-[60]" style={{ bottom: 90 }}>
         <button
           onClick={handleSubmit}
-          disabled={submitting}
-          className="coral-gradient w-full h-14 rounded-full flex items-center justify-center gap-2 text-white font-bold text-lg shadow-lg shadow-primary/30 active:scale-[0.98] transition-transform disabled:opacity-60"
+          disabled={submitting || !isValid}
+          className={`w-full h-14 rounded-full flex items-center justify-center gap-2 text-white font-bold text-base shadow-lg transition-all active:scale-[0.98] ${
+            isValid ? 'bg-[#FF69B4] shadow-pink-300/40 opacity-100' : 'bg-[#FF69B4] opacity-50 cursor-not-allowed'
+          }`}
         >
           {submitting ? (
             <span className="material-symbols-outlined animate-spin">progress_activity</span>
           ) : (
             <>
-              <span>등록하기</span>
               <span className="material-symbols-outlined">send</span>
+              <span>게시물 올리기</span>
             </>
           )}
         </button>
