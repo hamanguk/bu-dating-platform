@@ -8,12 +8,14 @@ const {
   getStats,
   getUsers,
   getChatLogs,
+  getRecentActivity,
 } = require('../controllers/adminController');
 const { authenticate, requireAdmin } = require('../middleware/auth');
 
 router.use(authenticate, requireAdmin);
 
 router.get('/stats', getStats);
+router.get('/activity', getRecentActivity);
 router.get('/users', getUsers);
 router.get('/chat-logs', getChatLogs);
 router.get('/reports', getReports);

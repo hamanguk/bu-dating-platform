@@ -8,6 +8,7 @@ import MainFeedPage from './pages/MainFeedPage';
 import ProfilePage from './pages/ProfilePage';
 import CreatePostPage from './pages/CreatePostPage';
 import PostDetailPage from './pages/PostDetailPage';
+import EditPostPage from './pages/EditPostPage';
 import ChatListPage from './pages/ChatListPage';
 import ChatPage from './pages/ChatPage';
 import AdminPage from './pages/AdminPage';
@@ -31,6 +32,7 @@ export default function App() {
             <Route path="/create-post" element={<CreatePostPage />} />
             <Route path="/posts" element={<MainFeedPage />} />
             <Route path="/posts/:id" element={<PostDetailPage />} />
+            <Route path="/posts/:id/edit" element={<EditPostPage />} />
             <Route path="/chat" element={<ChatListPage />} />
             <Route path="/chat/:roomId" element={<ChatPage />} />
             <Route

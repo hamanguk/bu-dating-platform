@@ -106,15 +106,24 @@ exports.updateReportStatus = async (req, res) => {
  */
 exports.getUsers = async (req, res) => {
   try {
-    const { page = 1, limit = 50 } = req.query;
+    const { page = 1, limit = 50, search, filter } = req.query;
     const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    const query = {};
+    if (search) {
+      const regex = new RegExp(search, 'i');
+      query.$or = [{ name: regex }, { email: regex }, { department: regex }];
+    }
+    if (filter === 'suspended') query.isSuspended = true;
+    else if (filter === 'admin') query.role = 'admin';
+
     const [users, total] = await Promise.all([
-      User.find()
+      User.find(query)
         .select('name email department role isSuspended suspendedUntil profileComplete createdAt')
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(parseInt(limit)),
-      User.countDocuments(),
+      User.countDocuments(query),
     ]);
     res.json({ users, total, page: parseInt(page) });
   } catch (err) {
@@ -150,16 +159,45 @@ exports.getChatLogs = async (req, res) => {
  * GET /api/admin/stats
  * 대시보드 통계
  */
+/**
+ * GET /api/admin/activity
+ * 최근 활동 타임라인
+ */
+exports.getRecentActivity = async (req, res) => {
+  try {
+    const [recentUsers, recentPosts, recentReports] = await Promise.all([
+      User.find().sort({ createdAt: -1 }).limit(5).select('name createdAt').lean(),
+      Post.find({ isDeleted: false }).sort({ createdAt: -1 }).limit(5).select('title type createdAt').populate('author', 'name').lean(),
+      Report.find().sort({ createdAt: -1 }).limit(5).select('reason status createdAt').populate('reporter', 'name').populate('reportedUser', 'name').lean(),
+    ]);
+
+    const activities = [
+      ...recentUsers.map((u) => ({ type: 'user', icon: 'person_add', text: `${u.name} 님이 가입`, time: u.createdAt })),
+      ...recentPosts.map((p) => ({ type: 'post', icon: 'edit_note', text: `${p.author?.name || '익명'}이 "${p.title}" 게시`, time: p.createdAt })),
+      ...recentReports.map((r) => ({ type: 'report', icon: 'flag', text: `${r.reporter?.name || '?'}이 ${r.reportedUser?.name || '?'}을 신고 (${r.reason})`, time: r.createdAt })),
+    ].sort((a, b) => new Date(b.time) - new Date(a.time)).slice(0, 15);
+
+    res.json({ activities });
+  } catch (err) {
+    res.status(500).json({ message: '활동 내역을 불러오는 중 오류가 발생했습니다.' });
+  }
+};
+
 exports.getStats = async (req, res) => {
   try {
-    const [totalUsers, totalPosts, pendingReports, suspendedUsers, activeChatRooms] = await Promise.all([
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
+    const [totalUsers, totalPosts, pendingReports, suspendedUsers, activeChatRooms, newUsersToday, newPostsToday] = await Promise.all([
       User.countDocuments(),
       Post.countDocuments({ isDeleted: false }),
       Report.countDocuments({ status: 'pending' }),
       User.countDocuments({ isSuspended: true }),
       ChatRoom.countDocuments({ isActive: true }),
+      User.countDocuments({ createdAt: { $gte: todayStart } }),
+      Post.countDocuments({ isDeleted: false, createdAt: { $gte: todayStart } }),
     ]);
-    res.json({ totalUsers, totalPosts, pendingReports, suspendedUsers, activeChatRooms });
+    res.json({ totalUsers, totalPosts, pendingReports, suspendedUsers, activeChatRooms, newUsersToday, newPostsToday });
   } catch (err) {
     res.status(500).json({ message: '통계를 불러오는 중 오류가 발생했습니다.' });
   }

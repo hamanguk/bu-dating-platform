@@ -24,6 +24,9 @@ const initSocket = (io) => {
   io.on('connection', (socket) => {
     console.log(`🔌 Socket connected: ${socket.user.name} (${socket.id})`);
 
+    // 개인 채널 join (실시간 알림용)
+    socket.join(`user_${socket.user._id}`);
+
     // 채팅방 입장
     socket.on('join_room', async (roomId) => {
       try {
@@ -36,6 +39,7 @@ const initSocket = (io) => {
           return;
         }
         socket.join(roomId);
+        socket._activeRoom = roomId;
         socket.emit('joined_room', { roomId });
         console.log(`📩 ${socket.user.name} joined room ${roomId}`);
       } catch (err) {
@@ -46,6 +50,7 @@ const initSocket = (io) => {
     // 채팅방 퇴장
     socket.on('leave_room', (roomId) => {
       socket.leave(roomId);
+      if (socket._activeRoom === roomId) socket._activeRoom = null;
     });
 
     // 메시지 전송
@@ -66,24 +71,61 @@ const initSocket = (io) => {
           roomId,
           sender: socket.user._id,
           content: content.trim().slice(0, 2000),
+          readBy: [socket.user._id],
         });
 
         await message.populate('sender', 'name profileImage');
 
+        const lastMessage = {
+          content: message.content,
+          sender: socket.user._id,
+          timestamp: message.createdAt,
+        };
+
         // 마지막 메시지 업데이트
-        await ChatRoom.findByIdAndUpdate(roomId, {
-          lastMessage: {
-            content: message.content,
-            sender: socket.user._id,
-            timestamp: message.createdAt,
-          },
-        });
+        await ChatRoom.findByIdAndUpdate(roomId, { lastMessage });
 
         // 방의 모든 참여자에게 메시지 전송
         io.to(roomId).emit('new_message', message);
+
+        // 모든 참여자의 개인 채널에 room_updated 전송 (ChatList 실시간 갱신용)
+        room.participants.forEach((participantId) => {
+          io.to(`user_${participantId}`).emit('room_updated', {
+            roomId,
+            lastMessage,
+          });
+        });
       } catch (err) {
         console.error('Send message error:', err);
         socket.emit('error', { message: '메시지 전송 중 오류가 발생했습니다.' });
+      }
+    });
+
+    // 메시지 읽음 처리
+    socket.on('read_messages', async ({ roomId }) => {
+      try {
+        const room = await ChatRoom.findOne({
+          _id: roomId,
+          participants: socket.user._id,
+        });
+        if (!room) return;
+
+        await Message.updateMany(
+          {
+            roomId,
+            sender: { $ne: socket.user._id },
+            readBy: { $ne: socket.user._id },
+          },
+          { $addToSet: { readBy: socket.user._id } }
+        );
+
+        // 방의 다른 사용자에게 읽음 알림
+        socket.to(roomId).emit('messages_read', {
+          roomId,
+          userId: socket.user._id,
+        });
+      } catch (err) {
+        console.error('Read messages error:', err);
       }
     });
 
@@ -96,8 +138,9 @@ const initSocket = (io) => {
       });
     });
 
-    socket.on('disconnect', () => {
-      console.log(`🔌 Socket disconnected: ${socket.user.name}`);
+    socket.on('disconnect', (reason) => {
+      console.log(`🔌 Socket disconnected: ${socket.user.name} (${reason})`);
+      socket.leave(`user_${socket.user._id}`);
     });
   });
 };

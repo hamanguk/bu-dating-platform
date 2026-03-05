@@ -50,6 +50,10 @@ export const createPost = (formData) =>
   api.post('/posts', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
+export const updatePost = (id, formData) =>
+  api.put(`/posts/${id}`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
 export const deletePost = (id) => api.delete(`/posts/${id}`);
 export const toggleLike = (id) => api.post(`/posts/${id}/like`);
 
@@ -58,6 +62,7 @@ export const createOrGetRoom = (data) => api.post('/chat/room', data);
 export const getMyRooms = () => api.get('/chat/rooms');
 export const getMessages = (roomId, params) =>
   api.get(`/chat/rooms/${roomId}/messages`, { params });
+export const getTotalUnreadCount = () => api.get('/chat/unread-count');
 
 // Reports
 export const createReport = (data) => api.post('/reports', data);
@@ -71,5 +76,6 @@ export const unsuspendUser = (id) => api.post(`/admin/users/${id}/unsuspend`);
 export const adminDeletePost = (id) => api.delete(`/admin/posts/${id}`);
 export const getAdminUsers = (params) => api.get('/admin/users', { params });
 export const getAdminChatLogs = (params) => api.get('/admin/chat-logs', { params });
+export const getAdminActivity = () => api.get('/admin/activity');
 
 export default api;

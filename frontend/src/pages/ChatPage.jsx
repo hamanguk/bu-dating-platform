@@ -21,24 +21,42 @@ export default function ChatPage() {
 
     socket.emit('join_room', roomId);
 
+    // 입장 시 읽음 처리
+    socket.emit('read_messages', { roomId });
+
     socket.on('new_message', (msg) => {
       setMessages((prev) => [...prev, msg]);
+      // 내가 보낸 메시지가 아니면 읽음 처리
+      const senderId = msg.sender?._id || msg.sender;
+      if (senderId !== user?._id) {
+        socket.emit('read_messages', { roomId });
+      }
     });
 
     socket.on('user_typing', ({ name, isTyping }) => {
-      if (isTyping) {
-        setTypingUser(name);
-      } else {
-        setTypingUser(null);
-      }
+      setTypingUser(isTyping ? name : null);
+    });
+
+    // 상대방이 메시지를 읽었을 때 → readBy 업데이트
+    socket.on('messages_read', ({ userId }) => {
+      setMessages((prev) =>
+        prev.map((msg) => {
+          const senderId = msg.sender?._id || msg.sender;
+          if (senderId === user?._id && !msg.readBy?.includes(userId)) {
+            return { ...msg, readBy: [...(msg.readBy || []), userId] };
+          }
+          return msg;
+        })
+      );
     });
 
     return () => {
       socket.emit('leave_room', roomId);
       socket.off('new_message');
       socket.off('user_typing');
+      socket.off('messages_read');
     };
-  }, [roomId]);
+  }, [roomId, user?._id]);
 
   // 초기 메시지 로드
   useEffect(() => {
@@ -118,9 +136,14 @@ export default function ChatPage() {
                 )}
                 <div className="flex items-end gap-1.5">
                   {isMe && (
-                    <span className="text-[9px] text-[#a14553]/50 mb-1 font-medium">
-                      {formatTime(msg.createdAt)}
-                    </span>
+                    <div className="flex flex-col items-end gap-0.5 mb-1">
+                      <span className="material-symbols-outlined text-[14px]" style={{ color: (msg.readBy?.length || 0) > 1 ? '#ff6b81' : '#a1455380' }}>
+                        {(msg.readBy?.length || 0) > 1 ? 'done_all' : 'done'}
+                      </span>
+                      <span className="text-[9px] text-[#a14553]/50 font-medium">
+                        {formatTime(msg.createdAt)}
+                      </span>
+                    </div>
                   )}
                   <div
                     className={`px-4 py-2.5 text-sm leading-relaxed ${

@@ -5,9 +5,6 @@ const Post = require('../models/Post');
 /**
  * POST /api/chat/room
  * 채팅방 생성 또는 기존 방 반환
- * - type: 'direct' (1:1) | 'group' (과팅)
- * - postId: 과팅 게시물 ID (group일 경우)
- * - targetUserId: 1:1 채팅 상대방 ID (direct일 경우)
  */
 exports.createOrGetRoom = async (req, res) => {
   try {
@@ -22,7 +19,6 @@ exports.createOrGetRoom = async (req, res) => {
         return res.status(400).json({ message: '자신과는 채팅할 수 없습니다.' });
       }
 
-      // 기존 1:1 방 조회
       const existing = await ChatRoom.findOne({
         type: 'direct',
         participants: { $all: [myId, targetUserId], $size: 2 },
@@ -46,13 +42,11 @@ exports.createOrGetRoom = async (req, res) => {
       const post = await Post.findById(postId);
       if (!post) return res.status(404).json({ message: '게시물을 찾을 수 없습니다.' });
 
-      // 기존 그룹 방 조회
       const existing = await ChatRoom.findOne({ type: 'group', post: postId }).populate(
         'participants',
         'name profileImage department'
       );
       if (existing) {
-        // 참여자가 아닌 경우 추가
         if (!existing.participants.some((p) => p._id.toString() === myId.toString())) {
           existing.participants.push(myId);
           await existing.save();
@@ -80,21 +74,72 @@ exports.createOrGetRoom = async (req, res) => {
 
 /**
  * GET /api/chat/rooms
- * 내 채팅방 목록
+ * 내 채팅방 목록 (unread count 포함)
  */
 exports.getMyRooms = async (req, res) => {
   try {
+    const userId = req.user._id;
     const rooms = await ChatRoom.find({
-      participants: req.user._id,
+      participants: userId,
       isActive: true,
     })
       .sort({ 'lastMessage.timestamp': -1, updatedAt: -1 })
       .populate('participants', 'name profileImage isAnonymous')
       .populate('post', 'title type');
 
-    res.json(rooms);
+    // 방별 안 읽은 메시지 수 계산
+    const roomIds = rooms.map((r) => r._id);
+    const unreadCounts = await Message.aggregate([
+      {
+        $match: {
+          roomId: { $in: roomIds },
+          sender: { $ne: userId },
+          readBy: { $ne: userId },
+        },
+      },
+      { $group: { _id: '$roomId', count: { $sum: 1 } } },
+    ]);
+
+    const countMap = {};
+    unreadCounts.forEach(({ _id, count }) => {
+      countMap[_id.toString()] = count;
+    });
+
+    const result = rooms.map((room) => ({
+      ...room.toObject(),
+      unreadCount: countMap[room._id.toString()] || 0,
+    }));
+
+    res.json(result);
   } catch (err) {
     res.status(500).json({ message: '채팅방 목록을 불러오는 중 오류가 발생했습니다.' });
+  }
+};
+
+/**
+ * GET /api/chat/unread-count
+ * 전체 안 읽은 메시지 수
+ */
+exports.getTotalUnreadCount = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const myRooms = await ChatRoom.find({ participants: userId, isActive: true }).select('_id');
+    const roomIds = myRooms.map((r) => r._id);
+
+    const result = await Message.aggregate([
+      {
+        $match: {
+          roomId: { $in: roomIds },
+          sender: { $ne: userId },
+          readBy: { $ne: userId },
+        },
+      },
+      { $count: 'total' },
+    ]);
+
+    res.json({ unreadCount: result[0]?.total || 0 });
+  } catch (err) {
+    res.status(500).json({ message: '오류가 발생했습니다.' });
   }
 };
 

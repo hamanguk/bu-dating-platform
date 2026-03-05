@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getMyRooms } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import { ChatRoomSkeleton } from '../components/Skeleton';
+import EmptyState from '../components/EmptyState';
+import PageTransition from '../components/PageTransition';
 
 export default function ChatListPage() {
   const { user } = useAuth();
@@ -36,61 +39,81 @@ export default function ChatListPage() {
     src?.startsWith('/uploads') ? `http://localhost:5000${src}` : src;
 
   return (
-    <div className="flex flex-col bg-background-light dark:bg-background-dark min-h-screen">
-      {/* 헤더 */}
-      <div className="sticky top-0 z-40 flex items-center bg-white/80 dark:bg-[#1a0b0d]/80 ios-blur px-6 py-4 border-b border-gray-100 dark:border-white/5">
-        <h1 className="text-xl font-bold dark:text-white">채팅</h1>
-      </div>
+    <PageTransition>
+      <div className="flex flex-col bg-background-light dark:bg-background-dark min-h-screen">
+        {/* 헤더 */}
+        <div className="sticky top-0 z-40 flex items-center bg-white/80 dark:bg-[#1a0b0d]/80 ios-blur px-6 py-4 border-b border-gray-100 dark:border-white/5">
+          <h1 className="text-xl font-bold dark:text-white">채팅</h1>
+        </div>
 
-      {loading ? (
-        <div className="flex justify-center py-20">
-          <span className="material-symbols-outlined text-primary text-4xl animate-spin">progress_activity</span>
-        </div>
-      ) : rooms.length === 0 ? (
-        <div className="flex flex-col items-center py-20 gap-3">
-          <span className="material-symbols-outlined text-gray-300 text-6xl">chat_bubble</span>
-          <p className="text-gray-400 text-sm">아직 채팅방이 없습니다.</p>
-          <p className="text-gray-400 text-xs">게시물에서 채팅하기를 눌러 시작해보세요.</p>
-        </div>
-      ) : (
-        <div className="divide-y divide-gray-100 dark:divide-white/5">
-          {rooms.map((room) => {
-            const roomImg = getRoomImage(room);
-            const lastMsg = room.lastMessage;
-            return (
-              <button
-                key={room._id}
-                onClick={() => navigate(`/chat/${room._id}`)}
-                className="w-full flex items-center gap-4 px-6 py-4 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
-              >
-                <div
-                  className="w-12 h-12 rounded-full bg-primary/10 bg-cover bg-center flex-shrink-0 flex items-center justify-center"
-                  style={roomImg ? { backgroundImage: `url(${imgUrl(roomImg)})` } : {}}
+        {loading ? (
+          <div className="divide-y divide-gray-100 dark:divide-white/5">
+            {[...Array(5)].map((_, i) => <ChatRoomSkeleton key={i} />)}
+          </div>
+        ) : rooms.length === 0 ? (
+          <EmptyState
+            icon="chat_bubble"
+            title="아직 채팅방이 없습니다."
+            subtitle="게시물에서 채팅하기를 눌러 시작해보세요."
+            actionLabel="게시물 둘러보기"
+            onAction={() => navigate('/')}
+          />
+        ) : (
+          <div className="divide-y divide-gray-100 dark:divide-white/5">
+            {rooms.map((room) => {
+              const roomImg = getRoomImage(room);
+              const lastMsg = room.lastMessage;
+              const unread = room.unreadCount || 0;
+              return (
+                <button
+                  key={room._id}
+                  onClick={() => navigate(`/chat/${room._id}`)}
+                  className="w-full flex items-center gap-4 px-6 py-4 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
                 >
-                  {!roomImg && (
-                    <span className="material-symbols-outlined text-primary">
-                      {room.type === 'group' ? 'group' : 'person'}
-                    </span>
-                  )}
-                </div>
-                <div className="flex-1 text-left min-w-0">
-                  <div className="flex items-center justify-between">
-                    <p className="font-bold text-sm dark:text-white truncate">{getRoomName(room)}</p>
-                    {lastMsg?.timestamp && (
-                      <span className="text-[10px] text-gray-400 flex-shrink-0 ml-2">
-                        {new Date(lastMsg.timestamp).toLocaleDateString('ko-KR')}
+                  <div
+                    className="w-12 h-12 rounded-full bg-primary/10 bg-cover bg-center flex-shrink-0 flex items-center justify-center"
+                    style={roomImg ? { backgroundImage: `url(${imgUrl(roomImg)})` } : {}}
+                  >
+                    {!roomImg && (
+                      <span className="material-symbols-outlined text-primary">
+                        {room.type === 'group' ? 'group' : 'person'}
                       </span>
                     )}
                   </div>
-                  {lastMsg?.content && (
-                    <p className="text-xs text-gray-500 truncate mt-0.5">{lastMsg.content}</p>
-                  )}
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      )}
-    </div>
+                  <div className="flex-1 text-left min-w-0">
+                    <div className="flex items-center justify-between">
+                      <p className={`font-bold text-sm truncate ${unread > 0 ? 'dark:text-white text-gray-900' : 'dark:text-white'}`}>
+                        {getRoomName(room)}
+                      </p>
+                      <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                        {lastMsg?.timestamp && (
+                          <span className="text-[10px] text-gray-400">
+                            {new Date(lastMsg.timestamp).toLocaleDateString('ko-KR')}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between mt-0.5">
+                      {lastMsg?.content ? (
+                        <p className={`text-xs truncate ${unread > 0 ? 'text-gray-700 dark:text-gray-200 font-medium' : 'text-gray-500'}`}>
+                          {lastMsg.content}
+                        </p>
+                      ) : (
+                        <p className="text-xs text-gray-400">메시지가 없습니다.</p>
+                      )}
+                      {unread > 0 && (
+                        <span className="min-w-[20px] h-5 bg-primary text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1.5 flex-shrink-0 ml-2">
+                          {unread > 99 ? '99+' : unread}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </PageTransition>
   );
 }

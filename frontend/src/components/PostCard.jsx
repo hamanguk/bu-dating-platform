@@ -27,7 +27,7 @@ export default function PostCard({ post, onLikeToggle }) {
 
   return (
     <Link to={`/posts/${post._id}`}>
-      <div className="group relative overflow-hidden rounded-xl bg-white dark:bg-[#2d161a] shadow-xl shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-white/5">
+      <div className="group relative overflow-hidden rounded-xl bg-white dark:bg-[#2d161a] shadow-lg shadow-gray-200/40 dark:shadow-none border border-gray-100 dark:border-white/5 transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 active:scale-[0.99]">
         {/* 커버 이미지 */}
         {coverImage ? (
           <div
@@ -72,9 +72,9 @@ export default function PostCard({ post, onLikeToggle }) {
             </div>
             <button
               onClick={handleLike}
-              className={`flex h-12 w-12 items-center justify-center rounded-full transition-all ${
+              className={`flex h-12 w-12 items-center justify-center rounded-full transition-all duration-200 active:scale-90 ${
                 isLiked
-                  ? 'bg-primary text-white'
+                  ? 'bg-primary text-white shadow-lg shadow-primary/30'
                   : 'bg-primary/10 text-primary hover:bg-primary hover:text-white'
               }`}
             >

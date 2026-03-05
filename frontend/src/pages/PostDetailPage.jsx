@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getPost, deletePost, createOrGetRoom, createReport } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import { PostDetailSkeleton } from '../components/Skeleton';
+import PageTransition from '../components/PageTransition';
 
 export default function PostDetailPage() {
   const { id } = useParams();
@@ -13,6 +15,8 @@ export default function PostDetailPage() {
   const [reportOpen, setReportOpen] = useState(false);
   const [reportReason, setReportReason] = useState('');
   const [imgIdx, setImgIdx] = useState(0);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     getPost(id)
@@ -38,9 +42,16 @@ export default function PostDetailPage() {
   };
 
   const handleDelete = async () => {
-    if (!confirm('게시물을 삭제하시겠습니까?')) return;
-    await deletePost(post._id);
-    navigate(-1);
+    setDeleting(true);
+    try {
+      await deletePost(post._id);
+      navigate('/', { replace: true });
+    } catch {
+      alert('삭제 중 오류가 발생했습니다.');
+    } finally {
+      setDeleting(false);
+      setDeleteOpen(false);
+    }
   };
 
   const handleReport = async () => {
@@ -52,8 +63,14 @@ export default function PostDetailPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <span className="material-symbols-outlined text-primary text-4xl animate-spin">progress_activity</span>
+      <div className="flex flex-col bg-background-light dark:bg-background-dark min-h-screen">
+        <div className="sticky top-0 z-20 flex items-center bg-background-light/80 dark:bg-background-dark/80 ios-blur p-4 pb-2">
+          <button onClick={() => navigate(-1)} className="flex size-10 items-center justify-center rounded-full hover:bg-black/5">
+            <span className="material-symbols-outlined dark:text-white">arrow_back_ios_new</span>
+          </button>
+          <h2 className="text-base font-bold dark:text-white flex-1 text-center pr-10">게시물 상세</h2>
+        </div>
+        <PostDetailSkeleton />
       </div>
     );
   }
@@ -65,6 +82,7 @@ export default function PostDetailPage() {
     src?.startsWith('/uploads') ? `http://localhost:5000${src}` : src;
 
   return (
+    <PageTransition>
     <div className="flex flex-col bg-background-light dark:bg-background-dark min-h-screen pb-32">
       {/* 헤더 */}
       <div className="sticky top-0 z-20 flex items-center bg-background-light/80 dark:bg-background-dark/80 ios-blur p-4 pb-2 justify-between">
@@ -74,9 +92,20 @@ export default function PostDetailPage() {
         <h2 className="text-base font-bold dark:text-white flex-1 text-center">게시물 상세</h2>
         <div className="flex gap-1">
           {isOwner ? (
-            <button onClick={handleDelete} className="text-red-500 text-xs px-3 py-1 rounded-full border border-red-200">
-              삭제
-            </button>
+            <>
+              <button
+                onClick={() => navigate(`/posts/${post._id}/edit`)}
+                className="text-primary text-xs px-3 py-1 rounded-full border border-primary/30 font-medium"
+              >
+                수정
+              </button>
+              <button
+                onClick={() => setDeleteOpen(true)}
+                className="text-red-500 text-xs px-3 py-1 rounded-full border border-red-200 font-medium"
+              >
+                삭제
+              </button>
+            </>
           ) : (
             <button onClick={() => setReportOpen(true)} className="text-gray-400 text-xs px-3 py-1 rounded-full border border-gray-200">
               신고
@@ -186,6 +215,34 @@ export default function PostDetailPage() {
         </div>
       )}
 
+      {/* 삭제 확인 모달 */}
+      {deleteOpen && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center px-6" onClick={() => setDeleteOpen(false)}>
+          <div className="w-full max-w-[360px] bg-white dark:bg-[#2d161a] rounded-2xl p-6 text-center" onClick={(e) => e.stopPropagation()}>
+            <span className="material-symbols-outlined text-red-500 text-4xl mb-2">delete_forever</span>
+            <h3 className="text-lg font-bold dark:text-white mb-1">게시물 삭제</h3>
+            <p className="text-sm text-gray-500 mb-5">삭제하면 되돌릴 수 없습니다.<br />정말 삭제하시겠습니까?</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteOpen(false)}
+                className="flex-1 h-11 rounded-full border border-gray-200 dark:border-white/10 text-sm font-bold dark:text-white"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="flex-1 h-11 rounded-full bg-red-500 text-white text-sm font-bold flex items-center justify-center"
+              >
+                {deleting ? (
+                  <span className="material-symbols-outlined animate-spin text-base">progress_activity</span>
+                ) : '삭제'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 채팅하기 버튼 */}
       {!isOwner && (
         <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] p-6 bg-gradient-to-t from-background-light dark:from-background-dark to-transparent z-30">
@@ -206,5 +263,6 @@ export default function PostDetailPage() {
         </div>
       )}
     </div>
+    </PageTransition>
   );
 }

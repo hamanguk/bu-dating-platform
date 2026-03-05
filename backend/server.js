@@ -23,7 +23,7 @@ const server = http.createServer(app);
 const envOrigins = process.env.CLIENT_URL
   ? process.env.CLIENT_URL.split(',').map(o => o.trim())
   : [];
-const allowedOrigins = ['http://localhost:5173', 'http://localhost:3000', ...envOrigins];
+const allowedOrigins = ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:3001', ...envOrigins];
 
 // origin 함수: 화이트리스트 + *.vercel.app 전체 허용
 const corsOrigin = (origin, callback) => {

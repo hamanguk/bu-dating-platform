@@ -89,7 +89,14 @@ exports.createPost = async (req, res) => {
       return res.status(400).json({ message: '타입과 제목은 필수입니다.' });
     }
 
-    const images = req.files?.map((f) => f.path) || [];
+    console.log('📸 req.files count:', req.files?.length || 0);
+    if (req.files?.length > 0) {
+      req.files.forEach((f, i) => {
+        console.log(`  [${i}] path=${f.path} | filename=${f.filename} | size=${f.size}`);
+      });
+    }
+
+    const images = req.files?.map((f) => f.path).filter(Boolean) || [];
 
     const post = await Post.create({
       author: req.user._id,
@@ -108,6 +115,44 @@ exports.createPost = async (req, res) => {
   } catch (err) {
     console.error('Create post error:', err);
     res.status(500).json({ message: '게시물 작성 중 오류가 발생했습니다.' });
+  }
+};
+
+/**
+ * PUT /api/posts/:id
+ * 게시물 수정 (작성자만 가능)
+ */
+exports.updatePost = async (req, res) => {
+  try {
+    const post = await Post.findOne({ _id: req.params.id, isDeleted: false });
+    if (!post) {
+      return res.status(404).json({ message: '게시물을 찾을 수 없습니다.' });
+    }
+
+    if (post.author.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: '수정 권한이 없습니다.' });
+    }
+
+    const { title, description, participantsCount, genderPreference, isAnonymous } = req.body;
+
+    if (title !== undefined) post.title = title.trim();
+    if (description !== undefined) post.description = description.trim();
+    if (participantsCount !== undefined) post.participantsCount = parseInt(participantsCount) || 2;
+    if (genderPreference !== undefined) post.genderPreference = genderPreference;
+    if (isAnonymous !== undefined) post.isAnonymous = isAnonymous === 'true' || isAnonymous === true;
+
+    // 새 이미지가 업로드된 경우 교체
+    if (req.files?.length > 0) {
+      post.images = req.files.map((f) => f.path).filter(Boolean);
+    }
+
+    await post.save();
+    await post.populate('author', 'name department profileImage');
+
+    res.json({ message: '게시물이 수정되었습니다.', post });
+  } catch (err) {
+    console.error('Update post error:', err);
+    res.status(500).json({ message: '게시물 수정 중 오류가 발생했습니다.' });
   }
 };
 
