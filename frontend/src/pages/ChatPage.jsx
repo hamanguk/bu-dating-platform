@@ -8,6 +8,7 @@ export default function ChatPage() {
   const { roomId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const myId = user?.id || myId;
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [typingUser, setTypingUser] = useState(null);
@@ -28,7 +29,7 @@ export default function ChatPage() {
       setMessages((prev) => [...prev, msg]);
       // 내가 보낸 메시지가 아니면 읽음 처리
       const senderId = msg.sender?._id || msg.sender;
-      if (senderId !== user?._id) {
+      if (senderId !== myId) {
         socket.emit('read_messages', { roomId });
       }
     });
@@ -42,7 +43,7 @@ export default function ChatPage() {
       setMessages((prev) =>
         prev.map((msg) => {
           const senderId = msg.sender?._id || msg.sender;
-          if (senderId === user?._id && !msg.readBy?.includes(userId)) {
+          if (senderId === myId && !msg.readBy?.includes(userId)) {
             return { ...msg, readBy: [...(msg.readBy || []), userId] };
           }
           return msg;
@@ -56,7 +57,7 @@ export default function ChatPage() {
       socket.off('user_typing');
       socket.off('messages_read');
     };
-  }, [roomId, user?._id]);
+  }, [roomId, myId]);
 
   // 초기 메시지 로드
   useEffect(() => {
@@ -115,7 +116,7 @@ export default function ChatPage() {
       {/* 메시지 목록 */}
       <main className="flex-1 overflow-y-auto no-scrollbar p-4 space-y-4">
         {messages.map((msg) => {
-          const isMe = msg.sender?._id === user?._id || msg.sender === user?._id;
+          const isMe = msg.sender?._id === myId || msg.sender === myId;
           return (
             <div key={msg._id} className={`flex ${isMe ? 'justify-end' : 'items-start gap-2'} max-w-[85%] ${isMe ? 'ml-auto' : ''}`}>
               {!isMe && (

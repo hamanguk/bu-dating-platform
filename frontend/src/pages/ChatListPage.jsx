@@ -8,6 +8,7 @@ import PageTransition from '../components/PageTransition';
 
 export default function ChatListPage() {
   const { user } = useAuth();
+  const myId = user?.id || myId;
   const navigate = useNavigate();
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -21,7 +22,7 @@ export default function ChatListPage() {
   const getRoomName = (room) => {
     if (room.name) return room.name;
     if (room.type === 'direct') {
-      const other = room.participants?.find((p) => p._id !== user?._id);
+      const other = room.participants?.find((p) => p._id !== myId);
       return other?.name || '상대방';
     }
     return '그룹 채팅';
@@ -29,7 +30,7 @@ export default function ChatListPage() {
 
   const getRoomImage = (room) => {
     if (room.type === 'direct') {
-      const other = room.participants?.find((p) => p._id !== user?._id);
+      const other = room.participants?.find((p) => p._id !== myId);
       return other?.profileImage;
     }
     return null;

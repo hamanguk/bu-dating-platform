@@ -77,7 +77,8 @@ export default function PostDetailPage() {
 
   if (!post) return null;
 
-  const isOwner = post.isOwner || post.author?._id === user?._id;
+  const myId = user?.id || user?._id;
+  const isOwner = post.isOwner || post.author?._id === myId;
   const imageUrl = (src) =>
     src?.startsWith('/uploads') ? `http://localhost:5000${src}` : src;
 
