@@ -14,11 +14,11 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// 401 응답 시 로그아웃 처리
+// 401 응답 시 로그아웃 처리 (/auth/me는 제외 — AuthContext에서 직접 처리)
 api.interceptors.response.use(
   (res) => res,
   (err) => {
-    if (err.response?.status === 401) {
+    if (err.response?.status === 401 && !err.config?.url?.includes('/auth/me')) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       window.location.href = '/login';

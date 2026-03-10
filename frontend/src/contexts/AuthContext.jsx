@@ -19,35 +19,81 @@ const withRetry = async (fn, retries = 2) => {
   }
 };
 
+// localStorage에서 캐시된 유저 정보 읽기
+const getCachedUser = () => {
+  try {
+    const raw = localStorage.getItem('user');
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+};
+
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const token = localStorage.getItem('token');
+  const cachedUser = getCachedUser();
+
+  // 토큰 + 캐시가 있으면 즉시 로그인 상태로 시작 (깜빡임 방지)
+  const [user, setUserState] = useState(token && cachedUser ? cachedUser : null);
+  const [loading, setLoading] = useState(!cachedUser || !token);
   const [error, setError] = useState(null);
   const loginInProgress = useRef(false);
+  const initialized = useRef(false);
+
+  // user 변경 시 localStorage에 동기화
+  const setUser = (newUser) => {
+    setUserState(newUser);
+    if (newUser) {
+      localStorage.setItem('user', JSON.stringify(newUser));
+    } else {
+      localStorage.removeItem('user');
+    }
+  };
 
   useEffect(() => {
     pingServer(); // Render 슬립 해제
 
+    // 캐시된 유저가 있으면 백그라운드로 최신 정보 검증
+    if (token && cachedUser) {
+      connectSocket(token);
+      getMe()
+        .then(({ data }) => setUser(data.user))
+        .catch((err) => {
+          // 401이면 세션 만료 → 로그아웃
+          if (err.response?.status === 401) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            setUserState(null);
+          }
+        })
+        .finally(() => setLoading(false));
+    }
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      console.log('🔔 onAuthStateChanged:', firebaseUser?.email ?? 'null');
+      // 초기화 이후 + 캐시 복원이 있었으면 Firebase 이벤트 무시
+      if (initialized.current) return;
+      initialized.current = true;
 
       if (loginInProgress.current) {
         setLoading(false);
         return;
       }
 
+      // 캐시 복원이 이미 성공했으면 스킵
+      if (token && cachedUser) {
+        return;
+      }
+
       try {
         if (firebaseUser) {
-          const token = localStorage.getItem('token');
+          const existingToken = localStorage.getItem('token');
 
-          if (token) {
-            // 기존 로그인 세션 (앱 재실행 시)
+          if (existingToken) {
             console.log('✅ 기존 세션 복원:', firebaseUser.email);
             const { data } = await withRetry(() => getMe());
             setUser(data.user);
-            connectSocket(token);
+            connectSocket(existingToken);
           } else {
-            // Firebase 로그인은 됐지만 백엔드 토큰이 없는 경우
             console.log('🔄 백엔드 토큰 발급:', firebaseUser.email);
             const idToken = await firebaseUser.getIdToken();
             const { data } = await withRetry(() => loginWithGoogle(idToken));
@@ -107,7 +153,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     disconnectSocket();
-    setUser(null);
+    setUserState(null);
     window.location.href = '/login';
   };
 

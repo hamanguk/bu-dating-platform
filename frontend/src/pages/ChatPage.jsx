@@ -8,7 +8,7 @@ export default function ChatPage() {
   const { roomId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const myId = user?.id || myId;
+  const myId = user?.id || user?._id;
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [typingUser, setTypingUser] = useState(null);
