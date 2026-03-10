@@ -43,10 +43,10 @@ export default function LoginPage() {
         <div className="absolute -bottom-24 -left-24 w-72 h-72 rounded-full bg-primary/5 blur-3xl" />
       </div>
 
-      <div className="relative z-10 flex flex-col items-center w-full max-w-sm gap-8">
+      <div className="relative z-10 flex flex-col items-center w-full max-w-sm gap-10">
         {/* 로고 */}
         <div className="flex flex-col items-center gap-3">
-          <div className="w-20 h-20 rounded-full coral-gradient flex items-center justify-center shadow-xl shadow-primary/30">
+          <div className="w-24 h-24 rounded-3xl coral-gradient flex items-center justify-center shadow-xl shadow-primary/30">
             <span className="material-symbols-outlined text-white text-4xl">shield_person</span>
           </div>
           <div className="text-center">
@@ -64,7 +64,7 @@ export default function LoginPage() {
             { icon: 'group', text: '1:1 소개팅부터 과팅까지 다양한 만남' },
             { icon: 'visibility_off', text: '익명/실명 선택으로 편안하게 소통' },
           ].map(({ icon, text }) => (
-            <div key={icon} className="flex items-center gap-3 bg-white dark:bg-white/5 rounded-xl px-4 py-3 shadow-sm">
+            <div key={icon} className="flex items-center gap-4 bg-white dark:bg-white/5 rounded-2xl px-5 py-4 shadow-sm">
               <span className="material-symbols-outlined text-primary">{icon}</span>
               <p className="text-sm text-[#1d0c0f] dark:text-white font-medium">{text}</p>
             </div>
@@ -82,7 +82,7 @@ export default function LoginPage() {
         <button
           onClick={handleLogin}
           disabled={loginLoading}
-          className="w-full h-14 rounded-full bg-white dark:bg-white/10 border border-gray-200 dark:border-white/20 flex items-center justify-center gap-3 shadow-lg font-bold text-[#1d0c0f] dark:text-white hover:bg-gray-50 dark:hover:bg-white/20 transition-all active:scale-95 disabled:opacity-60"
+          className="w-full h-16 rounded-2xl bg-white dark:bg-white/10 border border-gray-200 dark:border-white/20 flex items-center justify-center gap-3 shadow-lg font-bold text-[#1d0c0f] dark:text-white hover:bg-gray-50 dark:hover:bg-white/20 transition-all active:scale-95 disabled:opacity-60"
         >
           {loginLoading ? (
             <span className="material-symbols-outlined animate-spin text-primary">progress_activity</span>

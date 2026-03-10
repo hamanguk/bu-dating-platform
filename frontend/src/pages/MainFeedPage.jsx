@@ -64,7 +64,7 @@ export default function MainFeedPage() {
         onTouchEnd={handleTouchEnd}
       >
         {/* 헤더 */}
-        <div className="sticky top-0 z-40 flex items-center bg-white/80 dark:bg-[#1a0b0d]/80 ios-blur px-6 py-4 justify-between border-b border-gray-100 dark:border-white/5">
+        <div className="sticky top-0 z-40 flex items-center glass-light dark:glass-dark px-6 py-5 justify-between border-b border-white/30 dark:border-white/5">
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined text-primary text-[28px]">shield_person</span>
             <h1 className="text-xl font-bold tracking-tight dark:text-white">캠퍼스 데이트</h1>
@@ -73,7 +73,7 @@ export default function MainFeedPage() {
             {user?.role === 'admin' && (
               <button
                 onClick={() => navigate('/admin')}
-                className="px-3 py-1.5 bg-primary/10 text-primary text-xs font-bold rounded-full"
+                className="px-4 py-2 coral-gradient text-white text-xs font-bold rounded-2xl shadow-sm"
               >
                 관리자
               </button>
@@ -89,8 +89,8 @@ export default function MainFeedPage() {
         )}
 
         {/* 배너 */}
-        <div className="px-4 py-3">
-          <div className="relative h-[130px] w-full overflow-hidden rounded-xl bg-primary/10 flex items-center px-6">
+        <div className="px-5 py-4">
+          <div className="relative h-[140px] w-full overflow-hidden rounded-3xl bg-primary/10 flex items-center px-7">
             <div className="z-10 max-w-[70%]">
               <h2 className="text-lg font-bold leading-tight text-primary">백석대학교 인증 기반<br />안전한 소개팅 플랫폼</h2>
               <p className="text-xs mt-1 text-primary/80">백석대 메일 인증 완료 사용자만 이용 가능합니다.</p>
@@ -102,8 +102,8 @@ export default function MainFeedPage() {
         </div>
 
         {/* 타입 필터 */}
-        <div className="flex px-4 pb-2">
-          <div className="flex h-12 w-full items-center justify-center rounded-full bg-gray-100 dark:bg-white/5 p-1.5">
+        <div className="flex px-5 pb-4">
+          <div className="flex h-14 w-full items-center justify-center rounded-2xl bg-gray-100/80 dark:bg-white/5 p-1.5">
             {[
               { value: '', label: '전체' },
               { value: 'one', label: '1:1 소개팅' },
@@ -112,10 +112,10 @@ export default function MainFeedPage() {
               <button
                 key={value}
                 onClick={() => setType(value)}
-                className={`flex-1 h-full rounded-full text-sm font-semibold transition-all ${
+                className={`flex-1 h-full rounded-xl text-sm font-bold transition-all ${
                   type === value
-                    ? 'bg-white dark:bg-[#2d161a] shadow-sm text-primary'
-                    : 'text-gray-500'
+                    ? 'bg-white dark:bg-[#2d161a] shadow-md text-primary'
+                    : 'text-gray-400'
                 }`}
               >
                 {label}
@@ -125,7 +125,7 @@ export default function MainFeedPage() {
         </div>
 
         {/* 게시물 목록 */}
-        <div className="flex flex-col gap-6 px-4 pb-8">
+        <div className="flex flex-col gap-7 px-5 pb-10">
           {loading && page === 1 ? (
             <div className="flex flex-col gap-6">
               {[...Array(3)].map((_, i) => <PostCardSkeleton key={i} />)}

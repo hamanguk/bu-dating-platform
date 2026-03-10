@@ -40,7 +40,7 @@ export default function BottomNav() {
   }, [pathname]);
 
   return (
-    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 z-50 flex h-20 w-full max-w-[480px] items-center justify-around bg-white/90 dark:bg-[#1a0b0d]/90 ios-blur border-t border-gray-100 dark:border-white/5 pb-5">
+    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 z-50 flex h-22 w-full max-w-[480px] items-center justify-around glass-light dark:glass-dark border-t border-white/20 dark:border-white/5 pb-6 pt-2 rounded-t-3xl shadow-nav">
       {navItems.map(({ path, icon, label }) => {
         const active =
           path === '/'
@@ -54,7 +54,7 @@ export default function BottomNav() {
             className={`relative flex flex-col items-center gap-1 ${active ? 'text-primary' : 'text-gray-400'}`}
           >
             <span
-              className="material-symbols-outlined text-[28px]"
+              className={`material-symbols-outlined text-[26px] transition-all duration-200 ${active ? 'scale-110' : ''}`}
               style={active ? { fontVariationSettings: "'FILL' 1" } : {}}
             >
               {icon}

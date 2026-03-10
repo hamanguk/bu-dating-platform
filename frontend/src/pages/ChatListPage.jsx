@@ -8,7 +8,7 @@ import PageTransition from '../components/PageTransition';
 
 export default function ChatListPage() {
   const { user } = useAuth();
-  const myId = user?.id || myId;
+  const myId = user?.id || user?._id;
   const navigate = useNavigate();
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -43,7 +43,7 @@ export default function ChatListPage() {
     <PageTransition>
       <div className="flex flex-col bg-background-light dark:bg-background-dark min-h-screen">
         {/* 헤더 */}
-        <div className="sticky top-0 z-40 flex items-center bg-white/80 dark:bg-[#1a0b0d]/80 ios-blur px-6 py-4 border-b border-gray-100 dark:border-white/5">
+        <div className="sticky top-0 z-40 flex items-center glass-light dark:glass-dark px-6 py-5 border-b border-white/30 dark:border-white/5">
           <h1 className="text-xl font-bold dark:text-white">채팅</h1>
         </div>
 
@@ -69,10 +69,10 @@ export default function ChatListPage() {
                 <button
                   key={room._id}
                   onClick={() => navigate(`/chat/${room._id}`)}
-                  className="w-full flex items-center gap-4 px-6 py-4 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                  className="w-full flex items-center gap-4 px-6 py-5 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
                 >
                   <div
-                    className="w-12 h-12 rounded-full bg-primary/10 bg-cover bg-center flex-shrink-0 flex items-center justify-center"
+                    className="w-14 h-14 rounded-2xl bg-primary/10 bg-cover bg-center flex-shrink-0 flex items-center justify-center"
                     style={roomImg ? { backgroundImage: `url(${imgUrl(roomImg)})` } : {}}
                   >
                     {!roomImg && (

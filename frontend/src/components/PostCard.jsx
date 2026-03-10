@@ -27,7 +27,7 @@ export default function PostCard({ post, onLikeToggle }) {
 
   return (
     <Link to={`/posts/${post._id}`}>
-      <div className="group relative overflow-hidden rounded-xl bg-white dark:bg-[#2d161a] shadow-lg shadow-gray-200/40 dark:shadow-none border border-gray-100 dark:border-white/5 transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 active:scale-[0.99]">
+      <div className="group relative overflow-hidden rounded-3xl bg-white dark:bg-[#2d161a] shadow-card dark:shadow-none border border-gray-100/60 dark:border-white/5 transition-all duration-300 hover:shadow-card-hover hover:-translate-y-1 active:scale-[0.98]">
         {/* 커버 이미지 */}
         {coverImage ? (
           <div
@@ -62,20 +62,20 @@ export default function PostCard({ post, onLikeToggle }) {
         )}
 
         {/* 내용 */}
-        <div className="p-5">
-          <div className="flex items-start justify-between">
-            <div>
-              <h3 className="text-xl font-bold dark:text-white">{post.title}</h3>
+        <div className="p-6">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <h3 className="text-xl font-extrabold dark:text-white truncate">{post.title}</h3>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 {post.isAnonymous ? '익명' : post.author?.name} • {post.author?.department || ''}
               </p>
             </div>
             <button
               onClick={handleLike}
-              className={`flex h-12 w-12 items-center justify-center rounded-full transition-all duration-200 active:scale-90 ${
+              className={`flex h-13 w-13 items-center justify-center rounded-2xl transition-all duration-200 active:scale-90 flex-shrink-0 ${
                 isLiked
-                  ? 'bg-primary text-white shadow-lg shadow-primary/30'
-                  : 'bg-primary/10 text-primary hover:bg-primary hover:text-white'
+                  ? 'coral-gradient text-white shadow-lg shadow-primary/30'
+                  : 'bg-primary/8 text-primary hover:bg-primary hover:text-white'
               }`}
             >
               <span
@@ -93,7 +93,7 @@ export default function PostCard({ post, onLikeToggle }) {
             </p>
           )}
 
-          <div className="mt-3 flex items-center justify-between text-xs text-gray-400">
+          <div className="mt-4 flex items-center justify-between text-xs text-gray-400">
             <span>{new Date(post.createdAt).toLocaleDateString('ko-KR')}</span>
             <span className="flex items-center gap-1">
               <span className="material-symbols-outlined text-[14px]">favorite</span>

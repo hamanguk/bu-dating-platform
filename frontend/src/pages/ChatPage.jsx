@@ -104,7 +104,7 @@ export default function ChatPage() {
   return (
     <div className="flex flex-col h-screen bg-background-light dark:bg-background-dark">
       {/* 헤더 */}
-      <header className="sticky top-0 z-50 w-full bg-background-light/80 dark:bg-background-dark/80 ios-blur border-b border-black/5 dark:border-white/5 pt-4 pb-3 px-4 flex items-center justify-between">
+      <header className="sticky top-0 z-50 w-full glass-light dark:glass-dark border-b border-white/30 dark:border-white/5 pt-5 pb-4 px-5 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button onClick={() => navigate(-1)} className="p-1">
             <span className="material-symbols-outlined text-2xl dark:text-white">chevron_left</span>
@@ -147,10 +147,10 @@ export default function ChatPage() {
                     </div>
                   )}
                   <div
-                    className={`px-4 py-2.5 text-sm leading-relaxed ${
+                    className={`px-5 py-3 text-sm leading-relaxed ${
                       isMe
-                        ? 'bg-primary text-white rounded-2xl rounded-tr-none shadow-md'
-                        : 'bg-white dark:bg-[#2d1a1d] text-[#1d0c0f] dark:text-white rounded-2xl rounded-tl-none shadow-sm border border-black/5 dark:border-white/5'
+                        ? 'coral-gradient text-white rounded-3xl rounded-tr-sm shadow-md'
+                        : 'bg-white dark:bg-[#2d1a1d] text-[#1d0c0f] dark:text-white rounded-3xl rounded-tl-sm shadow-sm border border-black/5 dark:border-white/5'
                     }`}
                   >
                     {msg.content}
@@ -180,19 +180,19 @@ export default function ChatPage() {
       </main>
 
       {/* 입력창 */}
-      <footer className="bg-white dark:bg-[#1a0b0d] border-t border-black/5 dark:border-white/5 p-4 pb-8">
-        <div className="flex items-center gap-2">
+      <footer className="glass-light dark:glass-dark border-t border-white/30 dark:border-white/5 p-4 pb-8">
+        <div className="flex items-center gap-3">
           <div className="flex-1 relative">
             <input
               value={input}
               onChange={handleTyping}
               onKeyDown={handleKeyDown}
               placeholder="메시지를 입력하세요..."
-              className="w-full h-11 bg-background-light dark:bg-white/5 border-none rounded-full px-5 pr-12 text-sm focus:ring-2 focus:ring-primary/50 dark:text-white placeholder-[#a14553]/40 dark:placeholder-white/30"
+              className="w-full h-12 bg-gray-100/80 dark:bg-white/5 border-none rounded-2xl px-5 pr-14 text-sm focus:ring-2 focus:ring-primary/50 dark:text-white placeholder-[#a14553]/40 dark:placeholder-white/30"
             />
             <button
               onClick={handleSend}
-              className="absolute right-1 top-1 size-9 flex items-center justify-center rounded-full bg-primary text-white shadow-lg"
+              className="absolute right-1.5 top-1.5 size-9 flex items-center justify-center rounded-xl coral-gradient text-white shadow-lg"
             >
               <span className="material-symbols-outlined text-xl">arrow_upward</span>
             </button>

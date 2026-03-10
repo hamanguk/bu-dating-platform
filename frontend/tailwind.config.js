@@ -5,18 +5,23 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: '#ff6b81',
-        'background-light': '#f8f5f6',
-        'background-dark': '#230f12',
+        primary: '#FF6B81',
+        accent: '#FF9278',
+        'background-light': '#FFF7F8',
+        'background-dark': '#1A0B0D',
+        'card-light': '#FFFFFF',
+        'card-dark': '#2D161A',
       },
       fontFamily: {
         display: ['Plus Jakarta Sans', 'Noto Sans KR', 'sans-serif'],
       },
-      borderRadius: {
-        DEFAULT: '1rem',
-        lg: '2rem',
-        xl: '3rem',
-        full: '9999px',
+      letterSpacing: {
+        tighter: '-0.03em',
+      },
+      boxShadow: {
+        'card': '0 2px 20px rgba(255,107,129,0.08)',
+        'card-hover': '0 8px 30px rgba(255,107,129,0.15)',
+        'nav': '0 -4px 30px rgba(0,0,0,0.06)',
       },
     },
   },

@@ -64,8 +64,8 @@ export default function PostDetailPage() {
   if (loading) {
     return (
       <div className="flex flex-col bg-background-light dark:bg-background-dark min-h-screen">
-        <div className="sticky top-0 z-20 flex items-center bg-background-light/80 dark:bg-background-dark/80 ios-blur p-4 pb-2">
-          <button onClick={() => navigate(-1)} className="flex size-10 items-center justify-center rounded-full hover:bg-black/5">
+        <div className="sticky top-0 z-20 flex items-center glass-light dark:glass-dark p-5 pb-3 border-b border-white/30 dark:border-white/5">
+          <button onClick={() => navigate(-1)} className="flex size-10 items-center justify-center rounded-2xl hover:bg-black/5">
             <span className="material-symbols-outlined dark:text-white">arrow_back_ios_new</span>
           </button>
           <h2 className="text-base font-bold dark:text-white flex-1 text-center pr-10">게시물 상세</h2>
@@ -86,29 +86,29 @@ export default function PostDetailPage() {
     <PageTransition>
     <div className="flex flex-col bg-background-light dark:bg-background-dark min-h-screen pb-32">
       {/* 헤더 */}
-      <div className="sticky top-0 z-20 flex items-center bg-background-light/80 dark:bg-background-dark/80 ios-blur p-4 pb-2 justify-between">
-        <button onClick={() => navigate(-1)} className="flex size-10 items-center justify-center rounded-full hover:bg-black/5">
+      <div className="sticky top-0 z-20 flex items-center glass-light dark:glass-dark p-5 pb-3 justify-between border-b border-white/30 dark:border-white/5">
+        <button onClick={() => navigate(-1)} className="flex size-10 items-center justify-center rounded-2xl hover:bg-black/5">
           <span className="material-symbols-outlined dark:text-white">arrow_back_ios_new</span>
         </button>
-        <h2 className="text-base font-bold dark:text-white flex-1 text-center">게시물 상세</h2>
-        <div className="flex gap-1">
+        <h2 className="text-base font-extrabold dark:text-white flex-1 text-center">게시물 상세</h2>
+        <div className="flex gap-2">
           {isOwner ? (
             <>
               <button
                 onClick={() => navigate(`/posts/${post._id}/edit`)}
-                className="text-primary text-xs px-3 py-1 rounded-full border border-primary/30 font-medium"
+                className="text-primary text-xs px-4 py-1.5 rounded-2xl border border-primary/30 font-bold"
               >
                 수정
               </button>
               <button
                 onClick={() => setDeleteOpen(true)}
-                className="text-red-500 text-xs px-3 py-1 rounded-full border border-red-200 font-medium"
+                className="text-red-500 text-xs px-4 py-1.5 rounded-2xl border border-red-200 font-bold"
               >
                 삭제
               </button>
             </>
           ) : (
-            <button onClick={() => setReportOpen(true)} className="text-gray-400 text-xs px-3 py-1 rounded-full border border-gray-200">
+            <button onClick={() => setReportOpen(true)} className="text-gray-400 text-xs px-4 py-1.5 rounded-2xl border border-gray-200 font-medium">
               신고
             </button>
           )}
@@ -143,7 +143,7 @@ export default function PostDetailPage() {
       )}
 
       {/* 내용 */}
-      <div className="p-5 space-y-4">
+      <div className="p-6 space-y-5">
         <div>
           <h2 className="text-2xl font-bold dark:text-white">{post.title}</h2>
           <p className="text-sm text-gray-500 mt-1">
@@ -157,7 +157,7 @@ export default function PostDetailPage() {
 
         {/* 작성자 정보 */}
         {!post.isAnonymous && post.author && (
-          <div className="bg-white dark:bg-[#2d161a] rounded-xl p-4 flex items-center gap-3 border border-gray-100 dark:border-white/5">
+          <div className="bg-white dark:bg-[#2d161a] rounded-2xl p-5 flex items-center gap-4 border border-gray-100 dark:border-white/5">
             <div
               className="w-12 h-12 rounded-full bg-primary/10 bg-cover bg-center"
               style={post.author.profileImage ? { backgroundImage: `url(${imageUrl(post.author.profileImage)})` } : {}}
@@ -184,7 +184,7 @@ export default function PostDetailPage() {
       {/* 신고 모달 */}
       {reportOpen && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-end" onClick={() => setReportOpen(false)}>
-          <div className="w-full max-w-[480px] mx-auto bg-white dark:bg-[#2d161a] rounded-t-2xl p-6" onClick={(e) => e.stopPropagation()}>
+          <div className="w-full max-w-[480px] mx-auto bg-white dark:bg-[#2d161a] rounded-t-3xl p-7" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-base font-bold dark:text-white mb-4">신고 사유 선택</h3>
             {[
               { value: 'spam', label: '스팸/광고' },
@@ -208,7 +208,7 @@ export default function PostDetailPage() {
             ))}
             <button
               onClick={handleReport}
-              className="w-full mt-4 h-12 coral-gradient text-white font-bold rounded-full"
+              className="w-full mt-5 h-14 coral-gradient text-white font-bold rounded-2xl shadow-md"
             >
               신고 접수
             </button>
@@ -219,21 +219,21 @@ export default function PostDetailPage() {
       {/* 삭제 확인 모달 */}
       {deleteOpen && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center px-6" onClick={() => setDeleteOpen(false)}>
-          <div className="w-full max-w-[360px] bg-white dark:bg-[#2d161a] rounded-2xl p-6 text-center" onClick={(e) => e.stopPropagation()}>
+          <div className="w-full max-w-[360px] bg-white dark:bg-[#2d161a] rounded-3xl p-7 text-center" onClick={(e) => e.stopPropagation()}>
             <span className="material-symbols-outlined text-red-500 text-4xl mb-2">delete_forever</span>
             <h3 className="text-lg font-bold dark:text-white mb-1">게시물 삭제</h3>
             <p className="text-sm text-gray-500 mb-5">삭제하면 되돌릴 수 없습니다.<br />정말 삭제하시겠습니까?</p>
             <div className="flex gap-3">
               <button
                 onClick={() => setDeleteOpen(false)}
-                className="flex-1 h-11 rounded-full border border-gray-200 dark:border-white/10 text-sm font-bold dark:text-white"
+                className="flex-1 h-12 rounded-2xl border border-gray-200 dark:border-white/10 text-sm font-bold dark:text-white"
               >
                 취소
               </button>
               <button
                 onClick={handleDelete}
                 disabled={deleting}
-                className="flex-1 h-11 rounded-full bg-red-500 text-white text-sm font-bold flex items-center justify-center"
+                className="flex-1 h-12 rounded-2xl bg-red-500 text-white text-sm font-bold flex items-center justify-center"
               >
                 {deleting ? (
                   <span className="material-symbols-outlined animate-spin text-base">progress_activity</span>
@@ -250,7 +250,7 @@ export default function PostDetailPage() {
           <button
             onClick={handleChat}
             disabled={chatLoading}
-            className="coral-gradient w-full h-14 rounded-full flex items-center justify-center gap-2 text-white font-bold text-lg shadow-lg shadow-primary/30 active:scale-[0.98] transition-transform"
+            className="coral-gradient w-full h-16 rounded-2xl flex items-center justify-center gap-2 text-white font-extrabold text-lg shadow-lg shadow-primary/30 active:scale-[0.97] transition-transform"
           >
             {chatLoading ? (
               <span className="material-symbols-outlined animate-spin">progress_activity</span>

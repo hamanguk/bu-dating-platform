@@ -78,20 +78,20 @@ export default function ProfilePage() {
     : null;
 
   return (
-    <div className="flex flex-col bg-background-light dark:bg-background-dark min-h-screen pb-8">
+    <div className="flex flex-col bg-background-light dark:bg-background-dark min-h-screen pb-10">
       {/* 헤더 */}
-      <div className="flex items-center p-4 justify-between">
-        <h2 className="text-lg font-bold dark:text-white flex-1 text-center">내 프로필</h2>
-        <button onClick={logout} className="text-xs text-gray-400 px-3 py-1 rounded-full border border-gray-200 dark:border-white/10">
+      <div className="flex items-center p-5 justify-between">
+        <h2 className="text-xl font-extrabold dark:text-white flex-1 text-center">내 프로필</h2>
+        <button onClick={logout} className="text-xs text-gray-400 px-4 py-2 rounded-2xl border border-gray-200 dark:border-white/10 font-medium">
           로그아웃
         </button>
       </div>
 
       {/* 프로필 이미지 */}
-      <div className="flex flex-col items-center gap-3 py-4">
+      <div className="flex flex-col items-center gap-4 py-6">
         <div className="relative">
           <div
-            className="w-28 h-28 rounded-full bg-cover bg-center bg-primary/10 border-4 border-white dark:border-gray-800 shadow-xl flex items-center justify-center"
+            className="w-32 h-32 rounded-3xl bg-cover bg-center bg-primary/10 border-4 border-white dark:border-gray-800 shadow-xl flex items-center justify-center"
             style={profileImageSrc ? { backgroundImage: `url(${profileImageSrc})` } : {}}
           >
             {!profileImageSrc && (
@@ -100,7 +100,7 @@ export default function ProfilePage() {
           </div>
           <button
             onClick={() => fileRef.current?.click()}
-            className="absolute bottom-1 right-1 bg-primary text-white p-1.5 rounded-full border-2 border-white dark:border-gray-800"
+            className="absolute bottom-1 right-1 coral-gradient text-white p-2 rounded-xl border-2 border-white dark:border-gray-800 shadow-md"
           >
             <span className="material-symbols-outlined text-[16px]">edit</span>
           </button>
@@ -117,7 +117,7 @@ export default function ProfilePage() {
         <div className="px-4">
           <button
             onClick={() => navigate('/admin')}
-            className="w-full flex items-center justify-center gap-2 h-12 bg-[#2d161a] text-white font-bold rounded-xl shadow-sm"
+            className="w-full flex items-center justify-center gap-2 h-14 bg-[#2d161a] text-white font-bold rounded-2xl shadow-md"
           >
             <span className="material-symbols-outlined text-[20px]">admin_panel_settings</span>
             관리자 패널
@@ -126,7 +126,7 @@ export default function ProfilePage() {
       )}
 
       {/* 폼 */}
-      <div className="px-4 space-y-4">
+      <div className="px-5 space-y-5 mt-2">
         {error && (
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 rounded-xl px-4 py-3">
             <p className="text-red-600 text-sm">{error}</p>
@@ -147,7 +147,7 @@ export default function ProfilePage() {
             value={form.department}
             onChange={handleChange}
             placeholder="예: 컴퓨터공학과"
-            className="w-full bg-white dark:bg-[#2d161a] border-none rounded-xl h-12 px-4 text-sm font-medium focus:ring-2 focus:ring-primary shadow-sm dark:text-white"
+            className="w-full bg-white dark:bg-[#2d161a] border-none rounded-2xl h-13 px-5 text-sm font-medium focus:ring-2 focus:ring-primary shadow-sm dark:text-white"
           />
         </div>
 
@@ -158,7 +158,7 @@ export default function ProfilePage() {
             value={form.studentId}
             onChange={handleChange}
             placeholder="예: 20231234"
-            className="w-full bg-white dark:bg-[#2d161a] border-none rounded-xl h-12 px-4 text-sm font-medium focus:ring-2 focus:ring-primary shadow-sm dark:text-white"
+            className="w-full bg-white dark:bg-[#2d161a] border-none rounded-2xl h-13 px-5 text-sm font-medium focus:ring-2 focus:ring-primary shadow-sm dark:text-white"
           />
         </div>
 
@@ -169,7 +169,7 @@ export default function ProfilePage() {
               name="mbti"
               value={form.mbti}
               onChange={handleChange}
-              className="w-full bg-white dark:bg-[#2d161a] border-none rounded-xl h-12 px-4 text-sm font-medium focus:ring-2 focus:ring-primary shadow-sm dark:text-white"
+              className="w-full bg-white dark:bg-[#2d161a] border-none rounded-2xl h-13 px-5 text-sm font-medium focus:ring-2 focus:ring-primary shadow-sm dark:text-white"
             >
               <option value="">선택</option>
               {MBTI_LIST.map((m) => <option key={m} value={m}>{m}</option>)}
@@ -182,7 +182,7 @@ export default function ProfilePage() {
               name="gender"
               value={form.gender}
               onChange={handleChange}
-              className="w-full bg-white dark:bg-[#2d161a] border-none rounded-xl h-12 px-4 text-sm font-medium focus:ring-2 focus:ring-primary shadow-sm dark:text-white"
+              className="w-full bg-white dark:bg-[#2d161a] border-none rounded-2xl h-13 px-5 text-sm font-medium focus:ring-2 focus:ring-primary shadow-sm dark:text-white"
             >
               <option value="">선택</option>
               <option value="male">남성</option>
@@ -201,7 +201,7 @@ export default function ProfilePage() {
             onChange={handleChange}
             placeholder="예: 175"
             min="140" max="220"
-            className="w-full bg-white dark:bg-[#2d161a] border-none rounded-xl h-12 px-4 text-sm font-medium focus:ring-2 focus:ring-primary shadow-sm dark:text-white"
+            className="w-full bg-white dark:bg-[#2d161a] border-none rounded-2xl h-13 px-5 text-sm font-medium focus:ring-2 focus:ring-primary shadow-sm dark:text-white"
           />
         </div>
 
@@ -213,7 +213,7 @@ export default function ProfilePage() {
             onChange={handleChange}
             maxLength={300}
             placeholder="나를 소개해주세요 (최대 300자)"
-            className="w-full bg-white dark:bg-[#2d161a] border-none rounded-xl p-4 text-sm font-medium focus:ring-2 focus:ring-primary shadow-sm min-h-[100px] resize-none dark:text-white"
+            className="w-full bg-white dark:bg-[#2d161a] border-none rounded-2xl p-5 text-sm font-medium focus:ring-2 focus:ring-primary shadow-sm min-h-[120px] resize-none dark:text-white"
           />
         </div>
 
@@ -224,12 +224,12 @@ export default function ProfilePage() {
             value={form.interests}
             onChange={handleChange}
             placeholder="예: 영화, 커피, 여행"
-            className="w-full bg-white dark:bg-[#2d161a] border-none rounded-xl h-12 px-4 text-sm font-medium focus:ring-2 focus:ring-primary shadow-sm dark:text-white"
+            className="w-full bg-white dark:bg-[#2d161a] border-none rounded-2xl h-13 px-5 text-sm font-medium focus:ring-2 focus:ring-primary shadow-sm dark:text-white"
           />
         </div>
 
         {/* 익명 모드 토글 */}
-        <div className="flex items-center justify-between bg-white dark:bg-[#2d161a] rounded-xl p-4 shadow-sm border border-[#eacdd1] dark:border-white/10">
+        <div className="flex items-center justify-between bg-white dark:bg-[#2d161a] rounded-2xl p-5 shadow-sm border border-[#eacdd1] dark:border-white/10">
           <div>
             <div className="flex items-center gap-2">
               <span className="material-symbols-outlined text-primary text-[20px]">visibility_off</span>
@@ -250,7 +250,7 @@ export default function ProfilePage() {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="w-full h-14 rounded-full coral-gradient flex items-center justify-center gap-2 text-white font-bold text-base shadow-lg shadow-primary/30 active:scale-[0.98] transition-transform disabled:opacity-60"
+          className="w-full h-16 rounded-2xl coral-gradient flex items-center justify-center gap-2 text-white font-extrabold text-base shadow-lg shadow-primary/30 active:scale-[0.97] transition-transform disabled:opacity-60"
         >
           {saving ? (
             <span className="material-symbols-outlined animate-spin">progress_activity</span>

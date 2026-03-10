@@ -5,10 +5,13 @@
 @layer base {
   * {
     -webkit-tap-highlight-color: transparent;
+    letter-spacing: -0.03em;
   }
   body {
     font-family: 'Plus Jakarta Sans', 'Noto Sans KR', sans-serif;
     min-height: 100dvh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
@@ -21,7 +24,17 @@
     scrollbar-width: none;
   }
   .coral-gradient {
-    background: linear-gradient(135deg, #ff6b81 0%, #ff8e9e 100%);
+    background: linear-gradient(135deg, #FF6B81 0%, #FF9278 100%);
+  }
+  .glass-light {
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  .glass-dark {
+    background: rgba(26, 11, 13, 0.78);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
   }
   .ios-blur {
     backdrop-filter: blur(20px);
