@@ -422,5 +422,5 @@ npm run dev          # localhost:5173
 
 <p align="center">
   <b>캠퍼스 데이트</b> — 백석대학교 인증 소개팅 플랫폼<br>
-  Made with ❤️
+  Made By Ham YeongUk
 </p>
