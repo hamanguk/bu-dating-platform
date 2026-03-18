@@ -155,6 +155,16 @@ export default function MainFeedPage() {
             </>
           )}
         </div>
+
+        {/* FAB - 게시물이 있을 때 항상 표시 */}
+        {posts.length > 0 && (
+          <button
+            onClick={() => navigate('/create-post')}
+            className="fixed bottom-24 right-4 z-50 w-14 h-14 rounded-full coral-gradient text-white shadow-lg flex items-center justify-center text-2xl active:scale-95 transition-transform"
+          >
+            <span className="material-symbols-outlined text-[28px]">add</span>
+          </button>
+        )}
       </div>
     </PageTransition>
   );
