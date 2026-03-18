@@ -64,6 +64,10 @@ export const getMessages = (roomId, params) =>
   api.get(`/chat/rooms/${roomId}/messages`, { params });
 export const getTotalUnreadCount = () => api.get('/chat/unread-count');
 
+// Notifications
+export const saveFcmToken = (token) => api.post('/notifications/fcm-token', { token });
+export const deleteFcmToken = (token) => api.delete('/notifications/fcm-token', { data: { token } });
+
 // Reports
 export const createReport = (data) => api.post('/reports', data);
 

@@ -1,7 +1,78 @@
 const jwt = require('jsonwebtoken');
+const admin = require('firebase-admin');
 const User = require('../models/User');
 const Message = require('../models/Message');
 const ChatRoom = require('../models/ChatRoom');
+const { getFirebaseAdmin } = require('../config/firebase');
+
+// 오프라인 사용자에게 FCM 푸시 알림 전송
+const sendPushToOfflineUsers = async (io, room, senderName, messageContent) => {
+  try {
+    // 현재 소켓에 연결된 사용자 ID 수집
+    const connectedUserIds = new Set();
+    for (const [, socket] of io.sockets.sockets) {
+      if (socket.user?._id) {
+        connectedUserIds.add(socket.user._id.toString());
+      }
+    }
+
+    // 오프라인 참여자 찾기
+    const offlineParticipants = room.participants.filter(
+      (pid) => !connectedUserIds.has(pid.toString())
+    );
+
+    if (offlineParticipants.length === 0) return;
+
+    // 오프라인 유저들의 FCM 토큰 조회
+    const users = await User.find({
+      _id: { $in: offlineParticipants },
+      fcmTokens: { $exists: true, $ne: [] },
+    }).select('fcmTokens');
+
+    const tokens = users.flatMap((u) => u.fcmTokens);
+    if (tokens.length === 0) return;
+
+    getFirebaseAdmin();
+    const message = {
+      notification: {
+        title: `${senderName}님의 메시지`,
+        body: messageContent.length > 100 ? messageContent.slice(0, 100) + '…' : messageContent,
+      },
+      data: {
+        roomId: room._id.toString(),
+        type: 'chat_message',
+      },
+    };
+
+    // 각 토큰에 개별 전송 (실패한 토큰 정리)
+    const results = await Promise.allSettled(
+      tokens.map((token) =>
+        admin.messaging().send({ ...message, token })
+      )
+    );
+
+    // 실패한 토큰(만료/무효) 정리
+    const invalidTokens = [];
+    results.forEach((result, idx) => {
+      if (result.status === 'rejected') {
+        const code = result.reason?.code;
+        if (code === 'messaging/registration-token-not-registered' ||
+            code === 'messaging/invalid-registration-token') {
+          invalidTokens.push(tokens[idx]);
+        }
+      }
+    });
+
+    if (invalidTokens.length > 0) {
+      await User.updateMany(
+        { fcmTokens: { $in: invalidTokens } },
+        { $pull: { fcmTokens: { $in: invalidTokens } } }
+      );
+    }
+  } catch (err) {
+    console.error('FCM push error:', err.message);
+  }
+};
 
 const initSocket = (io) => {
   // Socket.io JWT 인증 미들웨어
@@ -95,6 +166,9 @@ const initSocket = (io) => {
             lastMessage,
           });
         });
+
+        // 오프라인 사용자에게 FCM 푸시 알림
+        sendPushToOfflineUsers(io, room, socket.user.name, content.trim());
       } catch (err) {
         console.error('Send message error:', err);
         socket.emit('error', { message: '메시지 전송 중 오류가 발생했습니다.' });

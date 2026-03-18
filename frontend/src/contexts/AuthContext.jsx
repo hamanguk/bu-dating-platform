@@ -1,8 +1,9 @@
 import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth, signInWithGoogle, firebaseSignOut } from '../services/firebase';
-import { loginWithGoogle, getMe, pingServer } from '../services/api';
-import { connectSocket, disconnectSocket } from '../services/socket';
+import { loginWithGoogle, getMe, pingServer, saveFcmToken } from '../services/api';
+import { connectSocket, disconnectSocket, getSocket } from '../services/socket';
+import { showBrowserNotification, initFCM, onForegroundMessage, requestNotificationPermission } from '../services/notification';
 
 const AuthContext = createContext(null);
 
@@ -147,6 +148,60 @@ export const AuthProvider = ({ children }) => {
       loginInProgress.current = false;
     }
   };
+
+  // 알림 초기화 (소켓 연결 후)
+  useEffect(() => {
+    if (!user) return;
+
+    // 브라우저 알림 권한 요청
+    requestNotificationPermission();
+
+    // 소켓 글로벌 리스너: 새 메시지 알림
+    const socket = getSocket();
+    if (!socket) return;
+
+    const handleRoomUpdated = ({ roomId, lastMessage }) => {
+      // 내가 보낸 메시지면 무시
+      const senderId = lastMessage?.sender?.toString?.() || lastMessage?.sender;
+      const myId = user?.id || user?._id;
+      if (senderId === myId) return;
+
+      // 현재 해당 채팅방에 있으면 무시
+      if (window.location.pathname === `/chat/${roomId}`) return;
+
+      showBrowserNotification(
+        '캠퍼스 데이트 - 새 메시지',
+        lastMessage?.content || '새로운 메시지가 도착했습니다.',
+        () => { window.location.href = `/chat/${roomId}`; }
+      );
+    };
+
+    socket.on('room_updated', handleRoomUpdated);
+
+    // FCM 초기화 + 토큰 저장
+    initFCM().then((fcmToken) => {
+      if (fcmToken) {
+        saveFcmToken(fcmToken).catch(() => {});
+      }
+    });
+
+    // FCM 포그라운드 메시지 처리
+    const unsubFcm = onForegroundMessage((payload) => {
+      const { title, body } = payload.notification || {};
+      const roomId = payload.data?.roomId;
+      if (window.location.pathname === `/chat/${roomId}`) return;
+      showBrowserNotification(
+        title || '캠퍼스 데이트',
+        body || '새로운 메시지가 도착했습니다.',
+        roomId ? () => { window.location.href = `/chat/${roomId}`; } : undefined
+      );
+    });
+
+    return () => {
+      socket.off('room_updated', handleRoomUpdated);
+      if (typeof unsubFcm === 'function') unsubFcm();
+    };
+  }, [user]);
 
   const logout = async () => {
     await firebaseSignOut().catch(() => {});
