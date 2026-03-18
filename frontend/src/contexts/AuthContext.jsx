@@ -155,13 +155,15 @@ export const AuthProvider = ({ children }) => {
     if (!user) return;
 
     // 알림 권한이 아직 결정 안 됐으면 배너 표시
-    if ('Notification' in window && Notification.permission === 'default') {
-      setShowNotificationBanner(true);
-    } else if (Notification.permission === 'granted') {
-      // 이미 허용된 경우 FCM 바로 초기화
-      initFCM().then((fcmToken) => {
-        if (fcmToken) saveFcmToken(fcmToken).catch(() => {});
-      });
+    if ('Notification' in window) {
+      if (Notification.permission === 'default') {
+        setShowNotificationBanner(true);
+      } else if (Notification.permission === 'granted') {
+        // 이미 허용된 경우 FCM 바로 초기화
+        initFCM().then((fcmToken) => {
+          if (fcmToken) saveFcmToken(fcmToken).catch(() => {});
+        });
+      }
     }
 
     // 소켓 글로벌 리스너: 새 메시지 알림
