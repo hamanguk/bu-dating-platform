@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { useAuth } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 
@@ -13,10 +14,39 @@ import ChatListPage from './pages/ChatListPage';
 import ChatPage from './pages/ChatPage';
 import AdminPage from './pages/AdminPage';
 
+function NotificationBanner() {
+  const { showNotificationBanner, enableNotifications, setShowNotificationBanner } = useAuth();
+  if (!showNotificationBanner) return null;
+
+  return (
+    <div className="fixed top-0 left-0 right-0 z-[100] flex items-center justify-between gap-3 bg-gradient-to-r from-pink-500 to-rose-500 px-4 py-3 shadow-lg">
+      <div className="flex items-center gap-2 text-white text-sm font-medium">
+        <span className="material-symbols-outlined text-[20px]">notifications</span>
+        <span>새 메시지 알림을 받으시겠어요?</span>
+      </div>
+      <div className="flex items-center gap-2 flex-shrink-0">
+        <button
+          onClick={enableNotifications}
+          className="bg-white text-rose-500 text-xs font-bold px-3 py-1.5 rounded-full"
+        >
+          허용
+        </button>
+        <button
+          onClick={() => setShowNotificationBanner(false)}
+          className="text-white/80 text-xs px-2 py-1.5"
+        >
+          나중에
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+        <NotificationBanner />
         <Routes>
           <Route path="/login" element={<LoginPage />} />
 

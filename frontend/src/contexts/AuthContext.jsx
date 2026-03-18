@@ -38,6 +38,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUserState] = useState(token && cachedUser ? cachedUser : null);
   const [loading, setLoading] = useState(!cachedUser || !token);
   const [error, setError] = useState(null);
+  const [showNotificationBanner, setShowNotificationBanner] = useState(false);
   const loginInProgress = useRef(false);
   const initialized = useRef(false);
 
@@ -153,8 +154,15 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     if (!user) return;
 
-    // 브라우저 알림 권한 요청
-    requestNotificationPermission();
+    // 알림 권한이 아직 결정 안 됐으면 배너 표시
+    if ('Notification' in window && Notification.permission === 'default') {
+      setShowNotificationBanner(true);
+    } else if (Notification.permission === 'granted') {
+      // 이미 허용된 경우 FCM 바로 초기화
+      initFCM().then((fcmToken) => {
+        if (fcmToken) saveFcmToken(fcmToken).catch(() => {});
+      });
+    }
 
     // 소켓 글로벌 리스너: 새 메시지 알림
     const socket = getSocket();
@@ -178,13 +186,6 @@ export const AuthProvider = ({ children }) => {
 
     socket.on('room_updated', handleRoomUpdated);
 
-    // FCM 초기화 + 토큰 저장
-    initFCM().then((fcmToken) => {
-      if (fcmToken) {
-        saveFcmToken(fcmToken).catch(() => {});
-      }
-    });
-
     // FCM 포그라운드 메시지 처리
     const unsubFcm = onForegroundMessage((payload) => {
       const { title, body } = payload.notification || {};
@@ -203,6 +204,16 @@ export const AuthProvider = ({ children }) => {
     };
   }, [user]);
 
+  // 버튼 클릭 시 호출 — 사용자 제스처 컨텍스트에서 권한 요청
+  const enableNotifications = async () => {
+    setShowNotificationBanner(false);
+    const permission = await requestNotificationPermission();
+    if (permission === 'granted') {
+      const fcmToken = await initFCM();
+      if (fcmToken) saveFcmToken(fcmToken).catch(() => {});
+    }
+  };
+
   const logout = async () => {
     await firebaseSignOut().catch(() => {});
     localStorage.removeItem('token');
@@ -214,7 +225,7 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, setUser, loading, error, setError, login, logout }}
+      value={{ user, setUser, loading, error, setError, login, logout, showNotificationBanner, enableNotifications, setShowNotificationBanner }}
     >
       {children}
     </AuthContext.Provider>
