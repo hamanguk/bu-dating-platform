@@ -23,6 +23,15 @@ export default {
         'card-hover': '0 8px 30px rgba(255,107,129,0.15)',
         'nav': '0 -4px 30px rgba(0,0,0,0.06)',
       },
+      keyframes: {
+        'slide-up': {
+          '0%': { transform: 'translateY(100%)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
+      },
+      animation: {
+        'slide-up': 'slide-up 0.3s ease-out',
+      },
     },
   },
   plugins: [],
