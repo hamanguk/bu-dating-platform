@@ -160,9 +160,9 @@ export default function MainFeedPage() {
         {posts.length > 0 && (
           <button
             onClick={() => navigate('/create-post')}
-            className="fixed bottom-24 right-4 z-50 w-14 h-14 rounded-full coral-gradient text-white shadow-lg flex items-center justify-center text-2xl active:scale-95 transition-transform"
+            className="fixed bottom-24 right-5 z-50 w-[58px] h-[58px] rounded-[18px] bg-gradient-to-br from-pink-500 via-rose-500 to-orange-400 text-white shadow-[0_8px_24px_rgba(244,63,94,0.4)] flex items-center justify-center hover:scale-110 active:scale-95 transition-all duration-200 hover:shadow-[0_12px_32px_rgba(244,63,94,0.5)]"
           >
-            <span className="material-symbols-outlined text-[28px]">add</span>
+            <span className="material-symbols-outlined text-[26px] drop-shadow-sm">edit_square</span>
           </button>
         )}
       </div>
