@@ -29,13 +29,9 @@ export const requestNotificationPermission = async () => {
 };
 
 // 브라우저 Notification API로 알림 표시
+// 호출자(AuthContext)가 현재 해당 채팅방에 있는지 판단하므로 여기서는 권한만 확인
 export const showBrowserNotification = (title, body, onClick) => {
-  if (Notification.permission !== 'granted') return;
-  if (document.visibilityState === 'visible') {
-    // 탭이 보이는 상태면 인앱 알림만 (소리 등)
-    // 채팅 페이지에 있으면 알림 안 띄움
-    if (window.location.pathname.startsWith('/chat/')) return;
-  }
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
 
   const notification = new Notification(title, {
     body,
