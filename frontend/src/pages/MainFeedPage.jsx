@@ -124,6 +124,17 @@ export default function MainFeedPage() {
           </div>
         </div>
 
+        {/* 게시물 작성 버튼 */}
+        <div className="px-5 pb-4">
+          <button
+            onClick={() => navigate('/create-post')}
+            className="w-full h-12 rounded-2xl bg-gradient-to-r from-pink-500 via-rose-500 to-orange-400 text-white text-sm font-bold flex items-center justify-center gap-2 shadow-[0_4px_16px_rgba(244,63,94,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+          >
+            <span className="material-symbols-outlined text-[20px]">edit_square</span>
+            <span>새 게시물 작성하기</span>
+          </button>
+        </div>
+
         {/* 게시물 목록 */}
         <div className="flex flex-col gap-7 px-5 pb-10">
           {loading && page === 1 ? (
@@ -156,15 +167,6 @@ export default function MainFeedPage() {
           )}
         </div>
 
-        {/* FAB - 게시물이 있을 때 항상 표시 */}
-        {posts.length > 0 && (
-          <button
-            onClick={() => navigate('/create-post')}
-            className="fixed bottom-24 right-5 z-50 w-[58px] h-[58px] rounded-[18px] bg-gradient-to-br from-pink-500 via-rose-500 to-orange-400 text-white shadow-[0_8px_24px_rgba(244,63,94,0.4)] flex items-center justify-center hover:scale-110 active:scale-95 transition-all duration-200 hover:shadow-[0_12px_32px_rgba(244,63,94,0.5)]"
-          >
-            <span className="material-symbols-outlined text-[26px] drop-shadow-sm">edit_square</span>
-          </button>
-        )}
       </div>
     </PageTransition>
   );
