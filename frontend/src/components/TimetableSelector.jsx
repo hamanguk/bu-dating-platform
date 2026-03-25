@@ -1,5 +1,15 @@
 const DAYS = ['월', '화', '수', '목', '금'];
-const PERIODS = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
+const PERIODS = [
+  { label: '1교시', time: '09:00' },
+  { label: '2교시', time: '10:00' },
+  { label: '3교시', time: '11:00' },
+  { label: '4교시', time: '12:00', badge: '🔥 인기' },
+  { label: '5교시', time: '13:00', badge: '🔥 인기' },
+  { label: '6교시', time: '14:00' },
+  { label: '7교시', time: '15:00' },
+  { label: '8교시', time: '16:00' },
+  { label: '9교시', time: '17:00' },
+];
 
 export default function TimetableSelector({ timetable, onChange }) {
   // timetable: boolean[5][9]  — true = 공강
@@ -19,27 +29,40 @@ export default function TimetableSelector({ timetable, onChange }) {
   return (
     <div className="overflow-x-auto">
       <div className="min-w-[340px]">
-        {/* 헤더 */}
-        <div className="grid grid-cols-[40px_repeat(5,1fr)] gap-1 mb-1">
+        {/* 헤더 — 시간 열 + 요일 */}
+        <div className="grid grid-cols-[48px_repeat(5,1fr)]">
           <div />
           {DAYS.map((day, i) => (
             <button
               key={day}
               type="button"
               onClick={() => toggleDay(i)}
-              className="text-center text-xs font-bold text-gray-500 dark:text-gray-400 py-1 rounded-lg hover:bg-primary/10 transition-colors"
+              className="text-center text-[11px] font-bold text-gray-500 dark:text-gray-400 py-2 border-b border-gray-200 dark:border-white/10 hover:bg-primary/10 transition-colors"
             >
               {day}
             </button>
           ))}
         </div>
 
-        {/* 그리드 */}
+        {/* 시간표 격자 */}
         {PERIODS.map((period, pIdx) => (
-          <div key={pIdx} className="grid grid-cols-[40px_repeat(5,1fr)] gap-1 mb-1">
-            <div className="flex items-center justify-center text-xs font-medium text-gray-400 dark:text-gray-500">
-              {period}교시
+          <div key={pIdx} className="grid grid-cols-[48px_repeat(5,1fr)]">
+            {/* 시간 열 */}
+            <div className="flex flex-col items-center justify-center border-r border-b border-gray-200 dark:border-white/10 py-1">
+              <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 leading-tight">
+                {period.label}
+              </span>
+              <span className="text-[9px] text-gray-400 dark:text-gray-500 leading-tight">
+                {period.time}
+              </span>
+              {period.badge && (
+                <span className="text-[8px] text-orange-500 font-bold leading-tight mt-0.5">
+                  {period.badge}
+                </span>
+              )}
             </div>
+
+            {/* 셀 */}
             {DAYS.map((_, dIdx) => {
               const isFree = timetable[dIdx]?.[pIdx];
               return (
@@ -47,10 +70,10 @@ export default function TimetableSelector({ timetable, onChange }) {
                   key={dIdx}
                   type="button"
                   onClick={() => toggle(dIdx, pIdx)}
-                  className={`h-9 rounded-lg text-xs font-bold transition-all duration-150 active:scale-95 ${
+                  className={`h-11 border-b border-r border-gray-200 dark:border-white/10 text-[10px] font-bold transition-all duration-150 active:scale-95 ${
                     isFree
-                      ? 'bg-primary text-white shadow-sm'
-                      : 'bg-gray-100 dark:bg-white/5 text-gray-300 dark:text-gray-600'
+                      ? 'bg-[#FF8C00]/20 text-[#FF8C00] dark:bg-[#FF8C00]/30'
+                      : 'bg-white dark:bg-white/[0.02] text-gray-300 dark:text-gray-600'
                   }`}
                 >
                   {isFree ? '공강' : ''}
