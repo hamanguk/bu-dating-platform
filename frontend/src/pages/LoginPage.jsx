@@ -2,10 +2,48 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
+// 인앱 브라우저 감지
+const detectInAppBrowser = () => {
+  const ua = navigator.userAgent || navigator.vendor || '';
+  const rules = [
+    /FBAN|FBAV/i,           // Facebook / Instagram
+    /Instagram/i,
+    /KAKAOTALK/i,
+    /everytime/i,
+    /NAVER/i,
+    /Line\//i,
+    /DaumApps/i,
+    /SamsungBrowser\/.*CrossApp/i,
+    /\bwv\b/i,              // Android WebView
+  ];
+  return rules.some((r) => r.test(ua));
+};
+
+// Android intent:// 크롬 강제 실행
+const openInExternalBrowser = () => {
+  const currentUrl = window.location.href;
+  const ua = navigator.userAgent || '';
+
+  // Android: intent 스키마로 크롬 실행 시도
+  if (/android/i.test(ua)) {
+    const intentUrl = `intent://${currentUrl.replace(/^https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`;
+    window.location.href = intentUrl;
+    return;
+  }
+
+  // iOS: Safari로 열기 (복사 안내)
+  // iOS 인앱 브라우저에서는 자동 탈출이 어려워서 안내만 제공
+};
+
 export default function LoginPage() {
   const { login, user, loading, error, setError } = useAuth();
   const navigate = useNavigate();
   const [loginLoading, setLoginLoading] = useState(false);
+  const [isInApp, setIsInApp] = useState(false);
+
+  useEffect(() => {
+    setIsInApp(detectInAppBrowser());
+  }, []);
 
   useEffect(() => {
     if (!loading && user) {
@@ -33,6 +71,82 @@ export default function LoginPage() {
       setLoginLoading(false);
     }
   };
+
+  // 인앱 브라우저 감지 시 탈출 안내
+  if (isInApp) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen w-full max-w-[430px] mx-auto bg-background-light dark:bg-background-dark px-6">
+        <div className="flex flex-col items-center w-full max-w-sm gap-8">
+          {/* 아이콘 */}
+          <div className="w-20 h-20 rounded-3xl bg-primary/10 flex items-center justify-center">
+            <span className="material-symbols-outlined text-primary text-4xl">open_in_browser</span>
+          </div>
+
+          <div className="text-center">
+            <h1 className="text-2xl font-extrabold dark:text-white">외부 브라우저로 열어주세요</h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-3 leading-relaxed">
+              인스타그램, 에브리타임 등 앱 내 브라우저에서는<br />
+              구글 로그인이 차단됩니다.
+            </p>
+          </div>
+
+          {/* 안내 카드 */}
+          <div className="w-full space-y-3">
+            <div className="bg-white dark:bg-white/5 rounded-2xl px-5 py-4 shadow-sm border border-gray-100 dark:border-white/10">
+              <div className="flex items-start gap-3">
+                <span className="bg-primary text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">1</span>
+                <div>
+                  <p className="text-sm font-bold dark:text-white">우측 상단 메뉴 (⋯ 또는 ⋮) 터치</p>
+                  <p className="text-xs text-gray-400 mt-0.5">앱 상단에 있는 점 3개 버튼을 눌러주세요</p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-white dark:bg-white/5 rounded-2xl px-5 py-4 shadow-sm border border-gray-100 dark:border-white/10">
+              <div className="flex items-start gap-3">
+                <span className="bg-primary text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">2</span>
+                <div>
+                  <p className="text-sm font-bold dark:text-white">"기본 브라우저로 열기" 선택</p>
+                  <p className="text-xs text-gray-400 mt-0.5">Safari 또는 Chrome에서 열기를 눌러주세요</p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-white dark:bg-white/5 rounded-2xl px-5 py-4 shadow-sm border border-gray-100 dark:border-white/10">
+              <div className="flex items-start gap-3">
+                <span className="bg-green-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">3</span>
+                <div>
+                  <p className="text-sm font-bold dark:text-white">구글 로그인 진행</p>
+                  <p className="text-xs text-gray-400 mt-0.5">외부 브라우저에서 정상적으로 로그인됩니다</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Android 자동 열기 버튼 */}
+          <button
+            onClick={openInExternalBrowser}
+            className="w-full h-14 rounded-2xl bg-gradient-to-r from-primary to-accent text-white font-bold text-base flex items-center justify-center gap-2 shadow-lg shadow-primary/30 active:scale-[0.97] transition-transform"
+          >
+            <span className="material-symbols-outlined">open_in_new</span>
+            외부 브라우저로 열기
+          </button>
+
+          {/* URL 복사 대안 */}
+          <button
+            onClick={() => {
+              navigator.clipboard?.writeText(window.location.href).then(() => {
+                alert('주소가 복사되었습니다! 브라우저에 붙여넣기 해주세요.');
+              }).catch(() => {
+                prompt('아래 주소를 복사해주세요:', window.location.href);
+              });
+            }}
+            className="text-sm text-gray-400 underline underline-offset-4"
+          >
+            주소 복사하기
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative flex flex-col items-center justify-center min-h-screen w-full max-w-[430px] mx-auto bg-background-light dark:bg-background-dark px-6 overflow-hidden">
