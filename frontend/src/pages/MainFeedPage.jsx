@@ -120,6 +120,17 @@ export default function MainFeedPage() {
           </div>
         </div>
 
+        {/* 밥약속 제안 버튼 */}
+        <div className="sticky top-[60px] z-30 px-4 py-2 bg-white/80 dark:bg-[#1A0F05]/80 backdrop-blur-sm">
+          <button
+            onClick={() => navigate('/create-post')}
+            className="w-full h-14 rounded-2xl bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold text-lg flex items-center justify-center gap-2 shadow-md active:scale-[0.97] transition-transform duration-150"
+          >
+            <span className="material-symbols-outlined text-[22px]">edit_square</span>
+            밥약속 제안하기
+          </button>
+        </div>
+
         {/* 지금 공강인 친구 슬라이더 */}
         <div className="px-5 pb-3">
           <div className="flex items-center justify-between mb-3">
@@ -184,7 +195,7 @@ export default function MainFeedPage() {
         </div>
 
         {/* 게시물 목록 — 2열 그리드 */}
-        <div className="px-4 pb-24">
+        <div className="px-4 pb-10">
           {loading && page === 1 ? (
             <div className="grid grid-cols-2 gap-3">
               {[...Array(6)].map((_, i) => <PostCardSkeleton key={i} />)}
@@ -217,13 +228,6 @@ export default function MainFeedPage() {
           )}
         </div>
 
-        {/* FAB — 게시물 작성 */}
-        <button
-          onClick={() => navigate('/create-post')}
-          className="fixed bottom-24 right-4 z-50 w-14 h-14 rounded-full bg-gradient-to-br from-primary to-accent text-white flex items-center justify-center shadow-[0_4px_20px_rgba(255,140,0,0.4)] active:scale-90 transition-transform duration-150"
-        >
-          <span className="material-symbols-outlined text-[26px]">edit_square</span>
-        </button>
       </div>
     </PageTransition>
   );
