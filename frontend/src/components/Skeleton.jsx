@@ -6,15 +6,14 @@ export function SkeletonBox({ className = '' }) {
 
 export function PostCardSkeleton() {
   return (
-    <div className="overflow-hidden rounded-3xl bg-white dark:bg-[#2d161a] shadow-card border border-gray-100/60 dark:border-white/5">
-      <SkeletonBox className="aspect-[4/5] w-full rounded-none" />
-      <div className="p-6 space-y-3">
-        <SkeletonBox className="h-6 w-3/4" />
-        <SkeletonBox className="h-4 w-1/2" />
-        <SkeletonBox className="h-4 w-full" />
-        <div className="flex justify-between pt-1">
-          <SkeletonBox className="h-3 w-20" />
-          <SkeletonBox className="h-3 w-10" />
+    <div className="overflow-hidden rounded-2xl bg-white dark:bg-[#2d1e14] shadow-sm border border-gray-100 dark:border-white/5">
+      <SkeletonBox className="aspect-square w-full rounded-none" />
+      <div className="p-2.5 space-y-1.5">
+        <SkeletonBox className="h-4 w-3/4" />
+        <SkeletonBox className="h-3 w-1/2" />
+        <div className="flex justify-between">
+          <SkeletonBox className="h-2.5 w-16" />
+          <SkeletonBox className="h-2.5 w-8" />
         </div>
       </div>
     </div>
@@ -57,7 +56,7 @@ export function PostDetailSkeleton() {
 
 export function StatCardSkeleton() {
   return (
-    <div className="bg-white dark:bg-[#2d161a] rounded-2xl p-5 border border-gray-100/60 dark:border-white/5">
+    <div className="bg-white dark:bg-[#2d1e14] rounded-2xl p-5 border border-gray-100/60 dark:border-white/5">
       <SkeletonBox className="h-3 w-16 mb-2" />
       <SkeletonBox className="h-8 w-12" />
     </div>

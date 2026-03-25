@@ -82,7 +82,7 @@ export default function MainFeedPage() {
         onTouchEnd={handleTouchEnd}
       >
         {/* 헤더 */}
-        <div className="sticky top-0 z-40 flex items-center glass-light dark:glass-dark px-6 py-5 justify-between border-b border-white/30 dark:border-white/5">
+        <div className="sticky top-0 z-40 flex items-center px-6 py-4 justify-between bg-white/80 dark:bg-[#1A0F05]/80 backdrop-blur-md border-b border-gray-200/50 dark:border-white/5">
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined text-primary text-[28px]">restaurant</span>
             <h1 className="text-xl font-bold tracking-tight dark:text-white">혼밥친구</h1>
@@ -207,22 +207,11 @@ export default function MainFeedPage() {
           </div>
         </div>
 
-        {/* 게시물 작성 버튼 */}
-        <div className="px-5 pb-4">
-          <button
-            onClick={() => navigate('/create-post')}
-            className="w-full h-12 rounded-2xl bg-gradient-to-r from-primary via-orange-500 to-accent text-white text-sm font-bold flex items-center justify-center gap-2 shadow-[0_4px_16px_rgba(255,140,0,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
-          >
-            <span className="material-symbols-outlined text-[20px]">edit_square</span>
-            <span>밥 약속 제안하기</span>
-          </button>
-        </div>
-
-        {/* 게시물 목록 */}
-        <div className="flex flex-col gap-7 px-5 pb-10">
+        {/* 게시물 목록 — 2열 그리드 */}
+        <div className="px-4 pb-24">
           {loading && page === 1 ? (
-            <div className="flex flex-col gap-6">
-              {[...Array(3)].map((_, i) => <PostCardSkeleton key={i} />)}
+            <div className="grid grid-cols-2 gap-3">
+              {[...Array(6)].map((_, i) => <PostCardSkeleton key={i} />)}
             </div>
           ) : posts.length === 0 ? (
             <EmptyState
@@ -234,14 +223,16 @@ export default function MainFeedPage() {
             />
           ) : (
             <>
-              {posts.map((post) => (
-                <PostCard key={post._id} post={post} />
-              ))}
+              <div className="grid grid-cols-2 gap-3">
+                {posts.map((post) => (
+                  <PostCard key={post._id} post={post} />
+                ))}
+              </div>
               {hasMore && (
                 <button
                   onClick={loadMore}
                   disabled={loading}
-                  className="py-3 text-primary text-sm font-semibold text-center"
+                  className="w-full py-3 mt-3 text-primary text-sm font-semibold text-center"
                 >
                   {loading ? '불러오는 중...' : '더보기'}
                 </button>
@@ -249,6 +240,14 @@ export default function MainFeedPage() {
             </>
           )}
         </div>
+
+        {/* FAB — 게시물 작성 */}
+        <button
+          onClick={() => navigate('/create-post')}
+          className="fixed bottom-24 right-4 z-50 w-14 h-14 rounded-full bg-gradient-to-br from-primary to-accent text-white flex items-center justify-center shadow-[0_4px_20px_rgba(255,140,0,0.4)] active:scale-90 transition-transform duration-150"
+        >
+          <span className="material-symbols-outlined text-[26px]">edit_square</span>
+        </button>
       </div>
     </PageTransition>
   );
