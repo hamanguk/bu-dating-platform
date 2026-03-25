@@ -9,7 +9,7 @@ const postSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ['one', 'group'],
+      enum: ['meal', 'drink'],
       required: true,
     },
     title: {
@@ -23,6 +23,12 @@ const postSchema = new mongoose.Schema(
       maxlength: 1000,
       default: '',
     },
+    // 먹고 싶은 메뉴 카테고리
+    menuCategory: {
+      type: String,
+      enum: ['korean', 'chinese', 'japanese', 'western', 'cafe', 'chicken', 'pizza', 'snack', 'other'],
+      default: 'other',
+    },
     participantsCount: {
       type: Number,
       enum: [2, 3, 4],
@@ -30,7 +36,7 @@ const postSchema = new mongoose.Schema(
     },
     genderPreference: {
       type: String,
-      enum: ['male', 'female', 'mixed', 'any'],
+      enum: ['male', 'female', 'any'],
       default: 'any',
     },
     images: {

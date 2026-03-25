@@ -7,7 +7,8 @@ const { cloudinary } = require('../middleware/upload');
  */
 exports.updateProfile = async (req, res) => {
   try {
-    const { department, studentId, mbti, height, gender, bio, interests, isAnonymous } = req.body;
+    const { department, studentId, mbti, height, gender, bio, interests,
+            foodPreferences, diningStyle, timetable, isAnonymous } = req.body;
 
     const updateData = {};
     if (department !== undefined) updateData.department = department.trim();
@@ -17,6 +18,9 @@ exports.updateProfile = async (req, res) => {
     if (gender !== undefined) updateData.gender = gender;
     if (bio !== undefined) updateData.bio = bio.slice(0, 300);
     if (interests !== undefined) updateData.interests = Array.isArray(interests) ? interests.slice(0, 10) : [];
+    if (foodPreferences !== undefined) updateData.foodPreferences = Array.isArray(foodPreferences) ? foodPreferences.slice(0, 10) : [];
+    if (diningStyle !== undefined) updateData.diningStyle = diningStyle;
+    if (timetable !== undefined) updateData.timetable = timetable;
     if (isAnonymous !== undefined) updateData.isAnonymous = Boolean(isAnonymous);
 
     // 프로필 완성 여부 판단 (department 필수)
@@ -73,7 +77,7 @@ exports.uploadProfileImage = async (req, res) => {
 exports.getUserProfile = async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select(
-      'name department mbti height gender bio interests isAnonymous profileImage createdAt'
+      'name department mbti height gender bio interests foodPreferences diningStyle timetable isAnonymous profileImage createdAt'
     );
     if (!user) {
       return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });

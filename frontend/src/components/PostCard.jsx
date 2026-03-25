@@ -2,6 +2,11 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { toggleLike } from '../services/api';
 
+const MENU_ICONS = {
+  korean: '🍚', chinese: '🥟', japanese: '🍣', western: '🍝',
+  cafe: '☕', chicken: '🍗', pizza: '🍕', snack: '🍜', other: '🍽️',
+};
+
 export default function PostCard({ post, onLikeToggle }) {
   const [likeCount, setLikeCount] = useState(post.likeCount || 0);
   const [isLiked, setIsLiked] = useState(post.isLiked || false);
@@ -24,10 +29,11 @@ export default function PostCard({ post, onLikeToggle }) {
   };
 
   const coverImage = post.images?.[0];
+  const menuIcon = MENU_ICONS[post.menuCategory] || '🍽️';
 
   return (
     <Link to={`/posts/${post._id}`}>
-      <div className="group relative overflow-hidden rounded-3xl bg-white dark:bg-[#2d161a] shadow-card dark:shadow-none border border-gray-100/60 dark:border-white/5 transition-all duration-300 hover:shadow-card-hover hover:-translate-y-1 active:scale-[0.98]">
+      <div className="group relative overflow-hidden rounded-3xl bg-white dark:bg-[#2d1e14] shadow-card dark:shadow-none border border-gray-100/60 dark:border-white/5 transition-all duration-300 hover:shadow-card-hover hover:-translate-y-1 active:scale-[0.98]">
         {/* 커버 이미지 */}
         {coverImage ? (
           <div
@@ -37,26 +43,24 @@ export default function PostCard({ post, onLikeToggle }) {
             }}
           >
             <div className="absolute top-4 left-4 flex gap-2">
-              {post.type === 'group' && (
+              <span className="bg-black/30 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-bold text-white flex items-center gap-1">
+                {menuIcon} {post.type === 'meal' ? '밥 약속' : '술 한잔'}
+              </span>
+              {post.participantsCount > 2 && (
                 <span className="bg-black/30 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-bold text-white flex items-center gap-1">
                   <span className="material-symbols-outlined text-[12px]">group</span>
-                  {post.participantsCount}:{post.participantsCount} 과팅
+                  {post.participantsCount}명
                 </span>
               )}
             </div>
           </div>
         ) : (
           <div className="relative aspect-[4/5] w-full bg-primary/10 flex items-center justify-center">
-            <span className="material-symbols-outlined text-primary text-6xl opacity-30">
-              {post.type === 'group' ? 'group' : 'person'}
-            </span>
+            <span className="text-6xl opacity-30">{menuIcon}</span>
             <div className="absolute top-4 left-4 flex gap-2">
-              {post.type === 'group' && (
-                <span className="bg-primary/20 px-3 py-1 rounded-full text-[10px] font-bold text-primary flex items-center gap-1">
-                  <span className="material-symbols-outlined text-[12px]">group</span>
-                  {post.participantsCount}:{post.participantsCount} 과팅
-                </span>
-              )}
+              <span className="bg-primary/20 px-3 py-1 rounded-full text-[10px] font-bold text-primary flex items-center gap-1">
+                {menuIcon} {post.type === 'meal' ? '밥 약속' : '술 한잔'}
+              </span>
             </div>
           </div>
         )}
@@ -67,14 +71,14 @@ export default function PostCard({ post, onLikeToggle }) {
             <div className="flex-1 min-w-0">
               <h3 className="text-xl font-extrabold dark:text-white truncate">{post.title}</h3>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                {post.isAnonymous ? '익명' : post.author?.name} • {post.author?.department || ''}
+                {post.isAnonymous ? '익명' : post.author?.name} · {post.author?.department || ''}
               </p>
             </div>
             <button
               onClick={handleLike}
               className={`flex h-13 w-13 items-center justify-center rounded-2xl transition-all duration-200 active:scale-90 flex-shrink-0 ${
                 isLiked
-                  ? 'coral-gradient text-white shadow-lg shadow-primary/30'
+                  ? 'bg-gradient-to-r from-primary to-accent text-white shadow-lg shadow-primary/30'
                   : 'bg-primary/8 text-primary hover:bg-primary hover:text-white'
               }`}
             >

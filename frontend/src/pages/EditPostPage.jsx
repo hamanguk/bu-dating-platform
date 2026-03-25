@@ -2,6 +2,18 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getPost, updatePost } from '../services/api';
 
+const MENU_OPTIONS = [
+  { value: 'korean', label: '한식', icon: '🍚' },
+  { value: 'chinese', label: '중식', icon: '🥟' },
+  { value: 'japanese', label: '일식', icon: '🍣' },
+  { value: 'western', label: '양식', icon: '🍝' },
+  { value: 'cafe', label: '카페', icon: '☕' },
+  { value: 'chicken', label: '치킨', icon: '🍗' },
+  { value: 'pizza', label: '피자', icon: '🍕' },
+  { value: 'snack', label: '분식', icon: '🍜' },
+  { value: 'other', label: '기타', icon: '🍽️' },
+];
+
 export default function EditPostPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -14,10 +26,11 @@ export default function EditPostPage() {
   const [existingImages, setExistingImages] = useState([]);
 
   const [form, setForm] = useState({
-    type: 'one',
+    type: 'meal',
     title: '',
     description: '',
-    participantsCount: 3,
+    menuCategory: 'other',
+    participantsCount: 2,
     genderPreference: '',
     isAnonymous: false,
   });
@@ -31,10 +44,11 @@ export default function EditPostPage() {
           return;
         }
         setForm({
-          type: data.type,
+          type: data.type || 'meal',
           title: data.title,
           description: data.description || '',
-          participantsCount: data.participantsCount || 3,
+          menuCategory: data.menuCategory || 'other',
+          participantsCount: data.participantsCount || 2,
           genderPreference: data.genderPreference || '',
           isAnonymous: data.isAnonymous || false,
         });
@@ -76,14 +90,8 @@ export default function EditPostPage() {
   };
 
   const handleSubmit = async () => {
-    if (!form.title.trim()) {
-      setError('제목을 입력해주세요.');
-      return;
-    }
-    if (form.description.trim().length < 10) {
-      setError('분위기 설명을 10자 이상 입력해주세요.');
-      return;
-    }
+    if (!form.title.trim()) { setError('제목을 입력해주세요.'); return; }
+    if (form.description.trim().length < 10) { setError('설명을 10자 이상 입력해주세요.'); return; }
     setSubmitting(true);
     setError('');
     try {
@@ -91,7 +99,8 @@ export default function EditPostPage() {
       formData.append('type', form.type);
       formData.append('title', form.title.trim());
       formData.append('description', form.description.trim());
-      formData.append('participantsCount', form.type === 'group' ? form.participantsCount : 2);
+      formData.append('menuCategory', form.menuCategory);
+      formData.append('participantsCount', form.participantsCount);
       formData.append('genderPreference', form.genderPreference || 'any');
       formData.append('isAnonymous', form.isAnonymous);
       files.forEach((f) => formData.append('images', f));
@@ -99,8 +108,7 @@ export default function EditPostPage() {
       await updatePost(id, formData);
       navigate(`/posts/${id}`, { replace: true });
     } catch (err) {
-      const msg = err.response?.data?.message || '게시물 수정 중 오류가 발생했습니다.';
-      setError(`오류: ${msg}`);
+      setError(`오류: ${err.response?.data?.message || '게시물 수정 중 오류가 발생했습니다.'}`);
     } finally {
       setSubmitting(false);
     }
@@ -114,10 +122,7 @@ export default function EditPostPage() {
     );
   }
 
-  const typeLabel = form.type === 'one'
-    ? '1:1 소개팅'
-    : `과팅 (${form.participantsCount}:${form.participantsCount})`;
-
+  const selectedMenu = MENU_OPTIONS.find((m) => m.value === form.menuCategory);
   const totalImages = existingImages.length + files.length;
 
   return (
@@ -139,83 +144,91 @@ export default function EditPostPage() {
 
         {/* 미리보기 */}
         {form.title && (
-          <div className="rounded-xl shadow-lg bg-white dark:bg-[#2d161a] overflow-hidden border border-black/5">
+          <div className="rounded-xl shadow-lg bg-white dark:bg-[#2d1e14] overflow-hidden border border-black/5">
             <div className="p-4">
               <div className="flex items-center gap-2 mb-1">
                 <span className="size-2 rounded-full bg-blue-500 animate-pulse" />
                 <p className="text-blue-500 text-xs font-bold uppercase tracking-widest">수정 미리보기</p>
               </div>
-              <p className="text-[#1d0c0f] dark:text-white text-xl font-bold">{form.title}</p>
-              <p className="text-[#a14553] text-sm font-medium mt-1">{typeLabel}</p>
+              <p className="text-[#1d0c0f] dark:text-white text-xl font-bold">{selectedMenu?.icon} {form.title}</p>
+              <p className="text-primary/70 text-sm font-medium mt-1">
+                {form.type === 'meal' ? '밥 약속' : '술 한잔'} · {form.participantsCount}명
+              </p>
             </div>
           </div>
         )}
 
         {/* 타입 선택 */}
         <section>
-          <h3 className="text-sm font-bold text-[#a14553] uppercase tracking-wider mb-3">유형 선택</h3>
+          <h3 className="text-sm font-bold text-primary/80 uppercase tracking-wider mb-3">유형 선택</h3>
           <div className="flex bg-black/5 dark:bg-white/5 p-1.5 rounded-full">
             <button
-              onClick={() => setForm((p) => ({ ...p, type: 'one', genderPreference: '' }))}
-              className={`flex-1 py-3 text-sm font-bold rounded-full transition-all ${form.type === 'one' ? 'bg-white dark:bg-[#3d262a] shadow-sm text-primary' : 'text-gray-500'}`}
+              onClick={() => setForm((p) => ({ ...p, type: 'meal' }))}
+              className={`flex-1 py-3 text-sm font-bold rounded-full transition-all ${form.type === 'meal' ? 'bg-white dark:bg-[#3d262a] shadow-sm text-primary' : 'text-gray-500'}`}
             >
-              1:1 소개팅
+              🍚 밥 약속
             </button>
             <button
-              onClick={() => setForm((p) => ({ ...p, type: 'group', genderPreference: '' }))}
-              className={`flex-1 py-3 text-sm font-bold rounded-full transition-all ${form.type === 'group' ? 'bg-white dark:bg-[#3d262a] shadow-sm text-primary' : 'text-gray-500'}`}
+              onClick={() => setForm((p) => ({ ...p, type: 'drink' }))}
+              className={`flex-1 py-3 text-sm font-bold rounded-full transition-all ${form.type === 'drink' ? 'bg-white dark:bg-[#3d262a] shadow-sm text-primary' : 'text-gray-500'}`}
             >
-              과팅
+              🍺 술 한잔
             </button>
+          </div>
+        </section>
+
+        {/* 메뉴 선택 */}
+        <section>
+          <h3 className="text-sm font-bold text-primary/80 uppercase tracking-wider mb-3">메뉴</h3>
+          <div className="grid grid-cols-3 gap-2">
+            {MENU_OPTIONS.map(({ value, label, icon }) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setForm((p) => ({ ...p, menuCategory: value }))}
+                className={`py-3 rounded-xl text-sm font-bold transition-all flex flex-col items-center gap-1 ${
+                  form.menuCategory === value
+                    ? 'bg-primary text-white shadow-md scale-105'
+                    : 'bg-white dark:bg-[#2d1e14] text-gray-600 dark:text-gray-300 shadow-sm'
+                }`}
+              >
+                <span className="text-xl">{icon}</span>
+                <span className="text-xs">{label}</span>
+              </button>
+            ))}
           </div>
         </section>
 
         {/* 제목 */}
         <section>
-          <h3 className="text-sm font-bold text-[#a14553] uppercase tracking-wider mb-2">제목 *</h3>
+          <h3 className="text-sm font-bold text-primary/80 uppercase tracking-wider mb-2">제목 *</h3>
           <input
             name="title"
             value={form.title}
             onChange={handleChange}
             maxLength={100}
-            placeholder="예: 불금 루프탑 분위기 맛집"
-            className="w-full bg-white dark:bg-[#2d161a] border-none rounded-xl h-12 px-4 text-sm font-medium focus:ring-2 focus:ring-primary shadow-sm dark:text-white"
+            className="w-full bg-white dark:bg-[#2d1e14] border-none rounded-xl h-12 px-4 text-sm font-medium focus:ring-2 focus:ring-primary shadow-sm dark:text-white"
           />
         </section>
 
         {/* 사진 */}
         <section>
-          <h3 className="text-sm font-bold text-[#a14553] uppercase tracking-wider mb-3">사진 (최대 5장)</h3>
+          <h3 className="text-sm font-bold text-primary/80 uppercase tracking-wider mb-3">사진 (최대 5장)</h3>
           <div className="flex gap-2 flex-wrap">
-            {/* 기존 이미지 */}
             {existingImages.map((src, idx) => (
               <div key={`existing-${idx}`} className="relative w-20 h-20">
                 <img src={src} className="w-full h-full object-cover rounded-xl" alt="" />
-                <button
-                  onClick={() => removeExistingImage(idx)}
-                  className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-[10px]"
-                >
-                  ✕
-                </button>
+                <button onClick={() => removeExistingImage(idx)} className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-[10px]">✕</button>
               </div>
             ))}
-            {/* 새 이미지 */}
             {previews.map((src, idx) => (
               <div key={`new-${idx}`} className="relative w-20 h-20">
                 <img src={src} className="w-full h-full object-cover rounded-xl border-2 border-blue-300" alt="" />
-                <button
-                  onClick={() => removeNewImage(idx)}
-                  className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-[10px]"
-                >
-                  ✕
-                </button>
+                <button onClick={() => removeNewImage(idx)} className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-[10px]">✕</button>
               </div>
             ))}
             {totalImages < 5 && (
-              <button
-                onClick={() => fileRef.current?.click()}
-                className="w-20 h-20 rounded-xl border-2 border-dashed border-primary/30 bg-primary/5 flex flex-col items-center justify-center gap-1 hover:bg-primary/10"
-              >
+              <button onClick={() => fileRef.current?.click()} className="w-20 h-20 rounded-xl border-2 border-dashed border-primary/30 bg-primary/5 flex flex-col items-center justify-center gap-1 hover:bg-primary/10">
                 <span className="material-symbols-outlined text-primary text-2xl">add_a_photo</span>
                 <span className="text-[10px] text-primary">추가</span>
               </button>
@@ -224,72 +237,60 @@ export default function EditPostPage() {
           <input ref={fileRef} type="file" accept=".jpg,.jpeg,.png" multiple className="hidden" onChange={handleImageSelect} />
         </section>
 
-        {/* 인원수 선택 (과팅만) */}
-        {form.type === 'group' && (
-          <section>
-            <h3 className="text-sm font-bold text-[#a14553] uppercase tracking-wider mb-3">인원수 선택</h3>
-            <div className="flex bg-black/5 dark:bg-white/5 p-1.5 rounded-full">
-              {[2, 3, 4].map((n) => (
-                <button
-                  key={n}
-                  onClick={() => setForm((p) => ({ ...p, participantsCount: n }))}
-                  className={`flex-1 py-3 text-sm font-bold rounded-full transition-all ${form.participantsCount === n ? 'bg-white dark:bg-[#3d262a] shadow-sm text-primary' : 'text-gray-500'}`}
-                >
-                  {n}:{n}
-                </button>
-              ))}
-            </div>
-          </section>
-        )}
+        {/* 인원수 */}
+        <section>
+          <h3 className="text-sm font-bold text-primary/80 uppercase tracking-wider mb-3">인원수</h3>
+          <div className="flex bg-black/5 dark:bg-white/5 p-1.5 rounded-full">
+            {[2, 3, 4].map((n) => (
+              <button
+                key={n}
+                onClick={() => setForm((p) => ({ ...p, participantsCount: n }))}
+                className={`flex-1 py-3 text-sm font-bold rounded-full transition-all ${form.participantsCount === n ? 'bg-white dark:bg-[#3d262a] shadow-sm text-primary' : 'text-gray-500'}`}
+              >
+                {n}명
+              </button>
+            ))}
+          </div>
+        </section>
 
-        {/* 성별 선택 */}
+        {/* 성별 */}
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1">
-            <label className="text-xs font-bold text-[#a14553] uppercase tracking-wider">성별</label>
+            <label className="text-xs font-bold text-primary/80 uppercase tracking-wider">성별 선호</label>
             <select
               name="genderPreference"
               value={form.genderPreference}
               onChange={handleChange}
-              className="w-full bg-white dark:bg-[#2d161a] border-none rounded-xl h-12 px-4 text-sm font-medium focus:ring-2 focus:ring-primary shadow-sm dark:text-white"
+              className="w-full bg-white dark:bg-[#2d1e14] border-none rounded-xl h-12 px-4 text-sm font-medium focus:ring-2 focus:ring-primary shadow-sm dark:text-white"
             >
-              <option value="">선택</option>
-              {form.type === 'one' ? (
-                <>
-                  <option value="male">남성</option>
-                  <option value="female">여성</option>
-                </>
-              ) : (
-                <>
-                  <option value="male">남성 그룹</option>
-                  <option value="female">여성 그룹</option>
-                </>
-              )}
+              <option value="">상관없음</option>
+              <option value="male">남성</option>
+              <option value="female">여성</option>
             </select>
           </div>
           <div className="flex items-end">
-            <div className="flex items-center bg-white dark:bg-[#2d161a] rounded-xl h-12 px-4 shadow-sm w-full gap-2">
+            <div className="flex items-center bg-white dark:bg-[#2d1e14] rounded-xl h-12 px-4 shadow-sm w-full gap-2">
               <span className="material-symbols-outlined text-primary text-sm">school</span>
-              <span className="text-sm font-medium dark:text-white">대학교 인증됨</span>
+              <span className="text-sm font-medium dark:text-white">백석대 인증됨</span>
             </div>
           </div>
         </div>
 
-        {/* 분위기 설명 */}
+        {/* 설명 */}
         <section>
-          <h3 className="text-sm font-bold text-[#a14553] uppercase tracking-wider mb-2">분위기 설명 *</h3>
+          <h3 className="text-sm font-bold text-primary/80 uppercase tracking-wider mb-2">상세 설명 *</h3>
           <textarea
             name="description"
             value={form.description}
             onChange={handleChange}
             maxLength={1000}
-            placeholder="예: 에너지 넘치는 공대생들이에요! 시원한 루프탑에서 같이 놀아요. (최소 10자)"
-            className="w-full bg-white dark:bg-[#2d161a] border-none rounded-xl p-4 text-sm font-medium focus:ring-2 focus:ring-primary shadow-sm min-h-[100px] resize-none dark:text-white"
+            className="w-full bg-white dark:bg-[#2d1e14] border-none rounded-xl p-4 text-sm font-medium focus:ring-2 focus:ring-primary shadow-sm min-h-[100px] resize-none dark:text-white"
           />
           <p className="text-xs text-gray-400 mt-1 text-right">{form.description.length}/1000</p>
         </section>
 
         {/* 익명 */}
-        <label className="flex items-center justify-between bg-white dark:bg-[#2d161a] rounded-xl p-4 shadow-sm cursor-pointer">
+        <label className="flex items-center justify-between bg-white dark:bg-[#2d1e14] rounded-xl p-4 shadow-sm cursor-pointer">
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined text-primary">visibility_off</span>
             <span className="text-sm font-bold dark:text-white">익명으로 게시</span>

@@ -2,9 +2,23 @@ import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { updateProfile, uploadProfileImage } from '../services/api';
+import TimetableSelector from '../components/TimetableSelector';
 
 const MBTI_LIST = ['INTJ','INTP','ENTJ','ENTP','INFJ','INFP','ENFJ','ENFP',
                    'ISTJ','ISFJ','ESTJ','ESFJ','ISTP','ISFP','ESTP','ESFP'];
+
+const FOOD_OPTIONS = [
+  { value: 'korean', label: '한식 🍚' },
+  { value: 'chinese', label: '중식 🥟' },
+  { value: 'japanese', label: '일식 🍣' },
+  { value: 'western', label: '양식 🍝' },
+  { value: 'cafe', label: '카페 ☕' },
+  { value: 'chicken', label: '치킨 🍗' },
+  { value: 'pizza', label: '피자 🍕' },
+  { value: 'snack', label: '분식 🍜' },
+];
+
+const defaultTimetable = () => Array.from({ length: 5 }, () => Array(9).fill(false));
 
 export default function ProfilePage() {
   const { user, setUser, logout } = useAuth();
@@ -21,13 +35,24 @@ export default function ProfilePage() {
     height: user?.height || '',
     gender: user?.gender || '',
     bio: user?.bio || '',
-    interests: user?.interests?.join(', ') || '',
+    foodPreferences: user?.foodPreferences || [],
+    diningStyle: user?.diningStyle || '',
+    timetable: user?.timetable || defaultTimetable(),
     isAnonymous: user?.isAnonymous || false,
   });
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setForm((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+  };
+
+  const toggleFood = (food) => {
+    setForm((prev) => {
+      const prefs = prev.foodPreferences.includes(food)
+        ? prev.foodPreferences.filter((f) => f !== food)
+        : [...prev.foodPreferences, food];
+      return { ...prev, foodPreferences: prefs };
+    });
   };
 
   const handleSave = async () => {
@@ -42,11 +67,9 @@ export default function ProfilePage() {
       const payload = {
         ...form,
         height: form.height ? parseInt(form.height) : undefined,
-        interests: form.interests ? form.interests.split(',').map((s) => s.trim()).filter(Boolean) : [],
       };
       const { data } = await updateProfile(payload);
       setUser(data.user);
-      // 프로필 완성 여부에 따라 홈 또는 잠시 성공 메시지 표시
       if (data.user?.profileComplete) {
         navigate('/', { replace: true });
       } else {
@@ -100,7 +123,7 @@ export default function ProfilePage() {
           </div>
           <button
             onClick={() => fileRef.current?.click()}
-            className="absolute bottom-1 right-1 coral-gradient text-white p-2 rounded-xl border-2 border-white dark:border-gray-800 shadow-md"
+            className="absolute bottom-1 right-1 bg-gradient-to-r from-primary to-accent text-white p-2 rounded-xl border-2 border-white dark:border-gray-800 shadow-md"
           >
             <span className="material-symbols-outlined text-[16px]">edit</span>
           </button>
@@ -117,7 +140,7 @@ export default function ProfilePage() {
         <div className="px-4">
           <button
             onClick={() => navigate('/admin')}
-            className="w-full flex items-center justify-center gap-2 h-14 bg-[#2d161a] text-white font-bold rounded-2xl shadow-md"
+            className="w-full flex items-center justify-center gap-2 h-14 bg-[#2d1e14] text-white font-bold rounded-2xl shadow-md"
           >
             <span className="material-symbols-outlined text-[20px]">admin_panel_settings</span>
             관리자 패널
@@ -139,7 +162,7 @@ export default function ProfilePage() {
         )}
 
         <div className="space-y-1">
-          <label className="text-xs font-bold text-[#a14553] uppercase tracking-wider">
+          <label className="text-xs font-bold text-primary/80 uppercase tracking-wider">
             학과 <span className="text-primary">*</span>
           </label>
           <input
@@ -147,29 +170,29 @@ export default function ProfilePage() {
             value={form.department}
             onChange={handleChange}
             placeholder="예: 컴퓨터공학과"
-            className="w-full bg-white dark:bg-[#2d161a] border-none rounded-2xl h-13 px-5 text-sm font-medium focus:ring-2 focus:ring-primary shadow-sm dark:text-white"
+            className="w-full bg-white dark:bg-[#2d1e14] border-none rounded-2xl h-13 px-5 text-sm font-medium focus:ring-2 focus:ring-primary shadow-sm dark:text-white"
           />
         </div>
 
         <div className="space-y-1">
-          <label className="text-xs font-bold text-[#a14553] uppercase tracking-wider">학번 (선택)</label>
+          <label className="text-xs font-bold text-primary/80 uppercase tracking-wider">학번 (선택)</label>
           <input
             name="studentId"
             value={form.studentId}
             onChange={handleChange}
             placeholder="예: 20231234"
-            className="w-full bg-white dark:bg-[#2d161a] border-none rounded-2xl h-13 px-5 text-sm font-medium focus:ring-2 focus:ring-primary shadow-sm dark:text-white"
+            className="w-full bg-white dark:bg-[#2d1e14] border-none rounded-2xl h-13 px-5 text-sm font-medium focus:ring-2 focus:ring-primary shadow-sm dark:text-white"
           />
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1">
-            <label className="text-xs font-bold text-[#a14553] uppercase tracking-wider">MBTI</label>
+            <label className="text-xs font-bold text-primary/80 uppercase tracking-wider">MBTI</label>
             <select
               name="mbti"
               value={form.mbti}
               onChange={handleChange}
-              className="w-full bg-white dark:bg-[#2d161a] border-none rounded-2xl h-13 px-5 text-sm font-medium focus:ring-2 focus:ring-primary shadow-sm dark:text-white"
+              className="w-full bg-white dark:bg-[#2d1e14] border-none rounded-2xl h-13 px-5 text-sm font-medium focus:ring-2 focus:ring-primary shadow-sm dark:text-white"
             >
               <option value="">선택</option>
               {MBTI_LIST.map((m) => <option key={m} value={m}>{m}</option>)}
@@ -177,12 +200,12 @@ export default function ProfilePage() {
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-bold text-[#a14553] uppercase tracking-wider">성별</label>
+            <label className="text-xs font-bold text-primary/80 uppercase tracking-wider">성별</label>
             <select
               name="gender"
               value={form.gender}
               onChange={handleChange}
-              className="w-full bg-white dark:bg-[#2d161a] border-none rounded-2xl h-13 px-5 text-sm font-medium focus:ring-2 focus:ring-primary shadow-sm dark:text-white"
+              className="w-full bg-white dark:bg-[#2d1e14] border-none rounded-2xl h-13 px-5 text-sm font-medium focus:ring-2 focus:ring-primary shadow-sm dark:text-white"
             >
               <option value="">선택</option>
               <option value="male">남성</option>
@@ -193,7 +216,7 @@ export default function ProfilePage() {
         </div>
 
         <div className="space-y-1">
-          <label className="text-xs font-bold text-[#a14553] uppercase tracking-wider">키 (cm)</label>
+          <label className="text-xs font-bold text-primary/80 uppercase tracking-wider">키 (cm)</label>
           <input
             name="height"
             type="number"
@@ -201,35 +224,83 @@ export default function ProfilePage() {
             onChange={handleChange}
             placeholder="예: 175"
             min="140" max="220"
-            className="w-full bg-white dark:bg-[#2d161a] border-none rounded-2xl h-13 px-5 text-sm font-medium focus:ring-2 focus:ring-primary shadow-sm dark:text-white"
+            className="w-full bg-white dark:bg-[#2d1e14] border-none rounded-2xl h-13 px-5 text-sm font-medium focus:ring-2 focus:ring-primary shadow-sm dark:text-white"
           />
         </div>
 
         <div className="space-y-1">
-          <label className="text-xs font-bold text-[#a14553] uppercase tracking-wider">자기소개</label>
+          <label className="text-xs font-bold text-primary/80 uppercase tracking-wider">자기소개</label>
           <textarea
             name="bio"
             value={form.bio}
             onChange={handleChange}
             maxLength={300}
             placeholder="나를 소개해주세요 (최대 300자)"
-            className="w-full bg-white dark:bg-[#2d161a] border-none rounded-2xl p-5 text-sm font-medium focus:ring-2 focus:ring-primary shadow-sm min-h-[120px] resize-none dark:text-white"
+            className="w-full bg-white dark:bg-[#2d1e14] border-none rounded-2xl p-5 text-sm font-medium focus:ring-2 focus:ring-primary shadow-sm min-h-[120px] resize-none dark:text-white"
           />
         </div>
 
+        {/* 선호 메뉴 */}
+        <div className="space-y-2">
+          <label className="text-xs font-bold text-primary/80 uppercase tracking-wider">선호 메뉴 (복수 선택)</label>
+          <div className="flex flex-wrap gap-2">
+            {FOOD_OPTIONS.map(({ value, label }) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => toggleFood(value)}
+                className={`px-3 py-2 rounded-xl text-xs font-bold transition-all ${
+                  form.foodPreferences.includes(value)
+                    ? 'bg-primary text-white shadow-sm'
+                    : 'bg-gray-100 dark:bg-white/5 text-gray-500'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 식사 스타일 */}
         <div className="space-y-1">
-          <label className="text-xs font-bold text-[#a14553] uppercase tracking-wider">관심사 (쉼표로 구분)</label>
-          <input
-            name="interests"
-            value={form.interests}
-            onChange={handleChange}
-            placeholder="예: 영화, 커피, 여행"
-            className="w-full bg-white dark:bg-[#2d161a] border-none rounded-2xl h-13 px-5 text-sm font-medium focus:ring-2 focus:ring-primary shadow-sm dark:text-white"
-          />
+          <label className="text-xs font-bold text-primary/80 uppercase tracking-wider">식사 스타일</label>
+          <div className="flex gap-3">
+            {[
+              { value: 'quiet', label: '조용히 먹기 🤫', icon: 'volume_off' },
+              { value: 'chatty', label: '수다 떨며 먹기 💬', icon: 'chat' },
+            ].map(({ value, label }) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setForm((prev) => ({ ...prev, diningStyle: prev.diningStyle === value ? '' : value }))}
+                className={`flex-1 py-3 rounded-xl text-xs font-bold transition-all ${
+                  form.diningStyle === value
+                    ? 'bg-primary text-white shadow-sm'
+                    : 'bg-gray-100 dark:bg-white/5 text-gray-500'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 시간표 */}
+        <div className="space-y-2">
+          <label className="text-xs font-bold text-primary/80 uppercase tracking-wider flex items-center gap-1">
+            <span className="material-symbols-outlined text-[14px]">calendar_month</span>
+            공강 시간표
+          </label>
+          <div className="bg-white dark:bg-[#2d1e14] rounded-2xl p-4 shadow-sm">
+            <TimetableSelector
+              timetable={form.timetable}
+              onChange={(t) => setForm((prev) => ({ ...prev, timetable: t }))}
+            />
+          </div>
         </div>
 
         {/* 익명 모드 토글 */}
-        <div className="flex items-center justify-between bg-white dark:bg-[#2d161a] rounded-2xl p-5 shadow-sm border border-[#eacdd1] dark:border-white/10">
+        <div className="flex items-center justify-between bg-white dark:bg-[#2d1e14] rounded-2xl p-5 shadow-sm border border-orange-100 dark:border-white/10">
           <div>
             <div className="flex items-center gap-2">
               <span className="material-symbols-outlined text-primary text-[20px]">visibility_off</span>
@@ -238,7 +309,7 @@ export default function ProfilePage() {
             <p className="text-xs text-gray-400 mt-1">다른 사용자에게 이름/사진을 숨깁니다.</p>
           </div>
           <label className="relative flex h-[31px] w-[51px] shrink-0 cursor-pointer items-center rounded-full p-0.5 transition-colors"
-            style={{ backgroundColor: form.isAnonymous ? '#ff6b81' : '#eacdd1' }}>
+            style={{ backgroundColor: form.isAnonymous ? '#FF8C00' : '#e5d5c5' }}>
             <div
               className="h-[27px] w-[27px] rounded-full bg-white shadow-md transition-transform"
               style={{ transform: form.isAnonymous ? 'translateX(20px)' : 'translateX(0)' }}
@@ -250,7 +321,7 @@ export default function ProfilePage() {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="w-full h-16 rounded-2xl coral-gradient flex items-center justify-center gap-2 text-white font-extrabold text-base shadow-lg shadow-primary/30 active:scale-[0.97] transition-transform disabled:opacity-60"
+          className="w-full h-16 rounded-2xl bg-gradient-to-r from-primary to-accent flex items-center justify-center gap-2 text-white font-extrabold text-base shadow-lg shadow-primary/30 active:scale-[0.97] transition-transform disabled:opacity-60"
         >
           {saving ? (
             <span className="material-symbols-outlined animate-spin">progress_activity</span>

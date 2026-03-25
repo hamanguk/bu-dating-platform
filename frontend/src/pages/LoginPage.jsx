@@ -7,7 +7,6 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const [loginLoading, setLoginLoading] = useState(false);
 
-  // user가 설정되면 자동 화면 전환
   useEffect(() => {
     if (!loading && user) {
       if (user.profileComplete) {
@@ -40,29 +39,29 @@ export default function LoginPage() {
       {/* 배경 데코 */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-primary/10 blur-3xl" />
-        <div className="absolute -bottom-24 -left-24 w-72 h-72 rounded-full bg-primary/5 blur-3xl" />
+        <div className="absolute -bottom-24 -left-24 w-72 h-72 rounded-full bg-accent/5 blur-3xl" />
       </div>
 
       <div className="relative z-10 flex flex-col items-center w-full max-w-sm gap-10">
         {/* 로고 */}
         <div className="flex flex-col items-center gap-3">
-          <div className="w-24 h-24 rounded-3xl coral-gradient flex items-center justify-center shadow-xl shadow-primary/30">
-            <span className="material-symbols-outlined text-white text-4xl">shield_person</span>
+          <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-xl shadow-primary/30">
+            <span className="material-symbols-outlined text-white text-4xl">restaurant</span>
           </div>
           <div className="text-center">
             <h1 className="text-3xl font-extrabold text-[#1d0c0f] dark:text-white tracking-tight">
-              캠퍼스 데이트
+              혼밥친구
             </h1>
-            <p className="text-primary font-semibold mt-1 text-sm">백석대학교 인증 소개팅 플랫폼</p>
+            <p className="text-primary font-semibold mt-1 text-sm">백석대 공강 시간 밥 매칭 플랫폼</p>
           </div>
         </div>
 
         {/* 설명 */}
         <div className="flex flex-col gap-3 w-full">
           {[
-            { icon: 'verified_user', text: '@bu.ac.kr 학교이메일 인증으로 신뢰할 수 있는 친구' },
-            { icon: 'group', text: '1:1 소개팅부터 과팅까지 다양한 만남' },
-            { icon: 'visibility_off', text: '익명/실명 선택으로 편안하게 소통' },
+            { icon: 'schedule', text: '공강 시간에 맞는 밥 친구를 자동 매칭' },
+            { icon: 'restaurant', text: '한식부터 카페까지, 취향이 맞는 친구' },
+            { icon: 'verified_user', text: '학교 이메일 인증으로 안전한 만남' },
           ].map(({ icon, text }) => (
             <div key={icon} className="flex items-center gap-4 bg-white dark:bg-white/5 rounded-2xl px-5 py-4 shadow-sm">
               <span className="material-symbols-outlined text-primary">{icon}</span>

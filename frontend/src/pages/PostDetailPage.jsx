@@ -5,6 +5,11 @@ import { useAuth } from '../contexts/AuthContext';
 import { PostDetailSkeleton } from '../components/Skeleton';
 import PageTransition from '../components/PageTransition';
 
+const MENU_ICONS = {
+  korean: '🍚', chinese: '🥟', japanese: '🍣', western: '🍝',
+  cafe: '☕', chicken: '🍗', pizza: '🍕', snack: '🍜', other: '🍽️',
+};
+
 export default function PostDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -28,10 +33,7 @@ export default function PostDetailPage() {
   const handleChat = async () => {
     setChatLoading(true);
     try {
-      const payload =
-        post.type === 'group'
-          ? { type: 'group', postId: post._id }
-          : { type: 'direct', targetUserId: post.author._id };
+      const payload = { type: 'direct', targetUserId: post.author._id };
       const { data } = await createOrGetRoom(payload);
       navigate(`/chat/${data._id}`);
     } catch (err) {
@@ -81,6 +83,7 @@ export default function PostDetailPage() {
   const isOwner = post.isOwner || post.author?._id === myId;
   const imageUrl = (src) =>
     src?.startsWith('/uploads') ? `http://localhost:5000${src}` : src;
+  const menuIcon = MENU_ICONS[post.menuCategory] || '🍽️';
 
   return (
     <PageTransition>
@@ -136,7 +139,7 @@ export default function PostDetailPage() {
           )}
           <div className="absolute top-4 left-4 flex gap-2">
             <span className="bg-primary px-3 py-1 rounded-full text-[10px] font-bold text-white">
-              {post.type === 'group' ? `${post.participantsCount}:${post.participantsCount} 과팅` : '1:1 소개팅'}
+              {menuIcon} {post.type === 'meal' ? '밥 약속' : '술 한잔'} · {post.participantsCount}명
             </span>
           </div>
         </div>
@@ -147,7 +150,7 @@ export default function PostDetailPage() {
         <div>
           <h2 className="text-2xl font-bold dark:text-white">{post.title}</h2>
           <p className="text-sm text-gray-500 mt-1">
-            {post.isAnonymous ? '익명' : post.author?.name} • {post.author?.department || ''}
+            {post.isAnonymous ? '익명' : post.author?.name} · {post.author?.department || ''}
           </p>
         </div>
 
@@ -157,7 +160,7 @@ export default function PostDetailPage() {
 
         {/* 작성자 정보 */}
         {!post.isAnonymous && post.author && (
-          <div className="bg-white dark:bg-[#2d161a] rounded-2xl p-5 flex items-center gap-4 border border-gray-100 dark:border-white/5">
+          <div className="bg-white dark:bg-[#2d1e14] rounded-2xl p-5 flex items-center gap-4 border border-gray-100 dark:border-white/5">
             <div
               className="w-12 h-12 rounded-full bg-primary/10 bg-cover bg-center"
               style={post.author.profileImage ? { backgroundImage: `url(${imageUrl(post.author.profileImage)})` } : {}}
@@ -184,7 +187,7 @@ export default function PostDetailPage() {
       {/* 신고 모달 */}
       {reportOpen && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-end" onClick={() => setReportOpen(false)}>
-          <div className="w-full max-w-[480px] mx-auto bg-white dark:bg-[#2d161a] rounded-t-3xl p-7" onClick={(e) => e.stopPropagation()}>
+          <div className="w-full max-w-[480px] mx-auto bg-white dark:bg-[#2d1e14] rounded-t-3xl p-7" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-base font-bold dark:text-white mb-4">신고 사유 선택</h3>
             {[
               { value: 'spam', label: '스팸/광고' },
@@ -208,7 +211,7 @@ export default function PostDetailPage() {
             ))}
             <button
               onClick={handleReport}
-              className="w-full mt-5 h-14 coral-gradient text-white font-bold rounded-2xl shadow-md"
+              className="w-full mt-5 h-14 bg-gradient-to-r from-primary to-accent text-white font-bold rounded-2xl shadow-md"
             >
               신고 접수
             </button>
@@ -219,7 +222,7 @@ export default function PostDetailPage() {
       {/* 삭제 확인 모달 */}
       {deleteOpen && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center px-6" onClick={() => setDeleteOpen(false)}>
-          <div className="w-full max-w-[360px] bg-white dark:bg-[#2d161a] rounded-3xl p-7 text-center" onClick={(e) => e.stopPropagation()}>
+          <div className="w-full max-w-[360px] bg-white dark:bg-[#2d1e14] rounded-3xl p-7 text-center" onClick={(e) => e.stopPropagation()}>
             <span className="material-symbols-outlined text-red-500 text-4xl mb-2">delete_forever</span>
             <h3 className="text-lg font-bold dark:text-white mb-1">게시물 삭제</h3>
             <p className="text-sm text-gray-500 mb-5">삭제하면 되돌릴 수 없습니다.<br />정말 삭제하시겠습니까?</p>
@@ -250,7 +253,7 @@ export default function PostDetailPage() {
           <button
             onClick={handleChat}
             disabled={chatLoading}
-            className="coral-gradient w-full h-16 rounded-2xl flex items-center justify-center gap-2 text-white font-extrabold text-lg shadow-lg shadow-primary/30 active:scale-[0.97] transition-transform"
+            className="bg-gradient-to-r from-primary to-accent w-full h-16 rounded-2xl flex items-center justify-center gap-2 text-white font-extrabold text-lg shadow-lg shadow-primary/30 active:scale-[0.97] transition-transform"
           >
             {chatLoading ? (
               <span className="material-symbols-outlined animate-spin">progress_activity</span>

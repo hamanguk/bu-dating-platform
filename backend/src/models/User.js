@@ -1,5 +1,9 @@
 const mongoose = require('mongoose');
 
+// 5(월~금) x 9(1~9교시) 시간표 기본값 생성
+const defaultTimetable = () =>
+  Array.from({ length: 5 }, () => Array(9).fill(false));
+
 const userSchema = new mongoose.Schema(
   {
     email: {
@@ -45,9 +49,24 @@ const userSchema = new mongoose.Schema(
       maxlength: 300,
       default: '',
     },
+    // 기존 interests → foodPreferences + diningStyle로 피벗
     interests: {
       type: [String],
       default: [],
+    },
+    foodPreferences: {
+      type: [String],
+      default: [],
+    },
+    diningStyle: {
+      type: String,
+      enum: ['quiet', 'chatty', ''],
+      default: '',
+    },
+    // 5x9 시간표 (월~금, 1~9교시) — true = 공강
+    timetable: {
+      type: [[Boolean]],
+      default: defaultTimetable,
     },
     isAnonymous: {
       type: Boolean,

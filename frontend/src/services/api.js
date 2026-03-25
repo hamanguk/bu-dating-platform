@@ -43,6 +43,9 @@ export const uploadProfileImage = (formData) =>
   });
 export const getUserProfile = (id) => api.get(`/users/${id}`);
 
+// Match (공강 기반 매칭)
+export const getMatches = () => api.get('/users/match');
+
 // Posts
 export const getPosts = (params) => api.get('/posts', { params });
 export const getPost = (id) => api.get(`/posts/${id}`);

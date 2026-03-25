@@ -8,7 +8,7 @@ exports.getPosts = async (req, res) => {
   try {
     const { type, page = 1, limit = 10 } = req.query;
     const filter = { isDeleted: false };
-    if (type === 'one' || type === 'group') filter.type = type;
+    if (type === 'meal' || type === 'drink') filter.type = type;
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
@@ -17,7 +17,7 @@ exports.getPosts = async (req, res) => {
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(parseInt(limit))
-        .populate('author', 'name department profileImage isAnonymous'),
+        .populate('author', 'name department profileImage isAnonymous mbti foodPreferences'),
       Post.countDocuments(filter),
     ]);
 
@@ -56,7 +56,7 @@ exports.getPost = async (req, res) => {
   try {
     const post = await Post.findOne({ _id: req.params.id, isDeleted: false }).populate(
       'author',
-      'name department profileImage isAnonymous mbti'
+      'name department profileImage isAnonymous mbti foodPreferences'
     );
     if (!post) {
       return res.status(404).json({ message: '게시물을 찾을 수 없습니다.' });
@@ -83,17 +83,10 @@ exports.getPost = async (req, res) => {
  */
 exports.createPost = async (req, res) => {
   try {
-    const { type, title, description, participantsCount, genderPreference, isAnonymous } = req.body;
+    const { type, title, description, menuCategory, participantsCount, genderPreference, isAnonymous } = req.body;
 
     if (!type || !title) {
       return res.status(400).json({ message: '타입과 제목은 필수입니다.' });
-    }
-
-    console.log('📸 req.files count:', req.files?.length || 0);
-    if (req.files?.length > 0) {
-      req.files.forEach((f, i) => {
-        console.log(`  [${i}] path=${f.path} | filename=${f.filename} | size=${f.size}`);
-      });
     }
 
     const images = req.files?.map((f) => f.path).filter(Boolean) || [];
@@ -103,6 +96,7 @@ exports.createPost = async (req, res) => {
       type,
       title: title.trim(),
       description: description?.trim() || '',
+      menuCategory: menuCategory || 'other',
       participantsCount: parseInt(participantsCount) || 2,
       genderPreference: genderPreference || 'any',
       images,
@@ -133,10 +127,11 @@ exports.updatePost = async (req, res) => {
       return res.status(403).json({ message: '수정 권한이 없습니다.' });
     }
 
-    const { title, description, participantsCount, genderPreference, isAnonymous } = req.body;
+    const { title, description, menuCategory, participantsCount, genderPreference, isAnonymous } = req.body;
 
     if (title !== undefined) post.title = title.trim();
     if (description !== undefined) post.description = description.trim();
+    if (menuCategory !== undefined) post.menuCategory = menuCategory;
     if (participantsCount !== undefined) post.participantsCount = parseInt(participantsCount) || 2;
     if (genderPreference !== undefined) post.genderPreference = genderPreference;
     if (isAnonymous !== undefined) post.isAnonymous = isAnonymous === 'true' || isAnonymous === true;

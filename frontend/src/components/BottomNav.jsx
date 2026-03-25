@@ -5,7 +5,7 @@ import { getSocket } from '../services/socket';
 
 const navItems = [
   { path: '/chat',    icon: 'chat_bubble', label: '채팅' },
-  { path: '/',        icon: 'home',        label: '홈' },
+  { path: '/',        icon: 'restaurant',  label: '홈' },
   { path: '/profile', icon: 'person',      label: '프로필' },
 ];
 
@@ -30,7 +30,6 @@ export default function BottomNav() {
     }
   }, []);
 
-  // 채팅 페이지 진입 시 뱃지 리셋
   useEffect(() => {
     if (pathname.startsWith('/chat')) {
       getTotalUnreadCount()
@@ -59,7 +58,6 @@ export default function BottomNav() {
             >
               {icon}
             </span>
-            {/* 채팅 unread 뱃지 */}
             {path === '/chat' && unreadCount > 0 && (
               <span className="absolute -top-1 -right-2 min-w-[18px] h-[18px] bg-primary text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1">
                 {unreadCount > 99 ? '99+' : unreadCount}

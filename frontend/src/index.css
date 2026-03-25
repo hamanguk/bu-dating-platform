@@ -24,7 +24,7 @@
     scrollbar-width: none;
   }
   .coral-gradient {
-    background: linear-gradient(135deg, #FF6B81 0%, #FF9278 100%);
+    background: linear-gradient(135deg, #FF8C00 0%, #FF6B81 100%);
   }
   .glass-light {
     background: rgba(255, 255, 255, 0.72);
@@ -32,7 +32,7 @@
     -webkit-backdrop-filter: blur(20px);
   }
   .glass-dark {
-    background: rgba(26, 11, 13, 0.78);
+    background: rgba(26, 15, 5, 0.78);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
   }
@@ -41,9 +41,16 @@
     -webkit-backdrop-filter: blur(20px);
   }
   .skeleton-shimmer {
-    background: linear-gradient(90deg, transparent 25%, rgba(255,107,129,0.06) 50%, transparent 75%);
+    background: linear-gradient(90deg, transparent 25%, rgba(255,140,0,0.06) 50%, transparent 75%);
     background-size: 200% 100%;
     animation: shimmer 1.5s ease-in-out infinite;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }
 

@@ -48,7 +48,7 @@ function NotificationBanner() {
   if (!showNotificationBanner) return null;
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-[100] flex items-center justify-between gap-3 bg-gradient-to-r from-pink-500 to-rose-500 px-4 py-3 shadow-lg">
+    <div className="fixed top-0 left-0 right-0 z-[100] flex items-center justify-between gap-3 bg-gradient-to-r from-orange-500 to-rose-500 px-4 py-3 shadow-lg">
       <div className="flex items-center gap-2 text-white text-sm font-medium">
         <span className="material-symbols-outlined text-[20px]">notifications</span>
         <span>새 메시지 알림을 받으시겠어요?</span>
@@ -56,7 +56,7 @@ function NotificationBanner() {
       <div className="flex items-center gap-2 flex-shrink-0">
         <button
           onClick={enableNotifications}
-          className="bg-white text-rose-500 text-xs font-bold px-3 py-1.5 rounded-full"
+          className="bg-white text-orange-500 text-xs font-bold px-3 py-1.5 rounded-full"
         >
           허용
         </button>
@@ -128,7 +128,7 @@ function PWAInstallBanner() {
   return (
     <div className="fixed bottom-20 left-3 right-3 z-[100] rounded-2xl bg-white dark:bg-[#2d1a1d] shadow-2xl border border-black/5 dark:border-white/10 p-4 animate-slide-up">
       <div className="flex items-start gap-3">
-        <div className="size-10 rounded-xl coral-gradient flex items-center justify-center flex-shrink-0">
+        <div className="size-10 rounded-xl bg-gradient-to-r from-primary to-accent flex items-center justify-center flex-shrink-0">
           <span className="material-symbols-outlined text-white text-xl">install_mobile</span>
         </div>
         <div className="flex-1 min-w-0">
@@ -156,7 +156,7 @@ function PWAInstallBanner() {
       {!isIOS && deferredPrompt && (
         <button
           onClick={handleInstall}
-          className="w-full mt-3 py-2.5 rounded-xl coral-gradient text-white text-sm font-bold shadow-md"
+          className="w-full mt-3 py-2.5 rounded-xl bg-gradient-to-r from-primary to-accent text-white text-sm font-bold shadow-md"
         >
           홈 화면에 추가
         </button>

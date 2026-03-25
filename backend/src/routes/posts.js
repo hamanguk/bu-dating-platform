@@ -16,18 +16,13 @@ router.get('/:id', authenticate, getPost);
 router.post(
   '/',
   authenticate,
-  (req, res, next) => { console.log('✅ POST /api/posts — auth passed, user:', req.user?.email, 'profileComplete:', req.user?.profileComplete); next(); },
   requireCompleteProfile,
-  (req, res, next) => { console.log('✅ POST /api/posts — profile check passed'); next(); },
   postLimiter,
   (req, res, next) => {
-    console.log('✅ POST /api/posts — rate limit passed, starting upload...');
     upload.array('images', 5)(req, res, (err) => {
       if (err) {
-        console.error('❌ POST /api/posts — upload error:', err.message, err);
         return res.status(400).json({ message: `이미지 업로드 오류: ${err.message}` });
       }
-      console.log('✅ POST /api/posts — upload done, files:', req.files?.length || 0);
       next();
     });
   },
