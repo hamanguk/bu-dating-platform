@@ -6,9 +6,8 @@ const Post = require('../models/Post');
  */
 exports.getPosts = async (req, res) => {
   try {
-    const { type, page = 1, limit = 10 } = req.query;
+    const { page = 1, limit = 10 } = req.query;
     const filter = { isDeleted: false };
-    if (type === 'meal' || type === 'drink') filter.type = type;
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
@@ -83,10 +82,10 @@ exports.getPost = async (req, res) => {
  */
 exports.createPost = async (req, res) => {
   try {
-    const { type, title, description, menuCategory, mealTime, participantsCount, genderPreference, isAnonymous } = req.body;
+    const { title, description, menuCategory, mealTime, participantsCount, genderPreference, isAnonymous } = req.body;
 
-    if (!type || !title) {
-      return res.status(400).json({ message: '타입과 제목은 필수입니다.' });
+    if (!title) {
+      return res.status(400).json({ message: '제목은 필수입니다.' });
     }
     // menuCategory: FormData에서 문자열/JSON으로 올 수 있음
     let categories = menuCategory;
@@ -104,7 +103,6 @@ exports.createPost = async (req, res) => {
 
     const post = await Post.create({
       author: req.user._id,
-      type,
       title: title.trim(),
       description: description?.trim() || '',
       menuCategory: categories,

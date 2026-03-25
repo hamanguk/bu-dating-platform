@@ -11,6 +11,8 @@ const MENU_OPTIONS = [
   { value: 'chicken', label: '치킨', icon: '🍗' },
   { value: 'pizza', label: '피자', icon: '🍕' },
   { value: 'snack', label: '분식', icon: '🍜' },
+  { value: 'beer', label: '맥주', icon: '🍺' },
+  { value: 'soju', label: '소주', icon: '🍶' },
   { value: 'other', label: '기타', icon: '🍽️' },
 ];
 
@@ -23,7 +25,6 @@ export default function CreatePostPage() {
   const [files, setFiles] = useState([]);
 
   const [form, setForm] = useState({
-    type: 'meal',
     title: '',
     description: '',
     menuCategory: [],
@@ -81,7 +82,6 @@ export default function CreatePostPage() {
     setError('');
     try {
       const formData = new FormData();
-      formData.append('type', form.type);
       formData.append('title', form.title.trim());
       formData.append('description', form.description.trim());
       formData.append('menuCategory', JSON.stringify(form.menuCategory));
@@ -136,31 +136,12 @@ export default function CreatePostPage() {
                 {selectedMenuIcons} {form.title}
               </p>
               <p className="text-primary/70 text-sm font-medium mt-1">
-                {form.type === 'meal' ? '밥 약속' : '술 한잔'} · {form.participantsCount}명
+                {form.participantsCount}명
                 {form.mealTime && ` · ${{ breakfast: '아침', lunch: '점심', dinner: '저녁', late_night: '야식' }[form.mealTime]}`}
               </p>
             </div>
           </div>
         )}
-
-        {/* 타입 선택 */}
-        <section>
-          <h3 className="text-sm font-bold text-primary/80 uppercase tracking-wider mb-3">유형 선택</h3>
-          <div className="flex bg-black/5 dark:bg-white/5 p-1.5 rounded-full">
-            <button
-              onClick={() => setForm((p) => ({ ...p, type: 'meal' }))}
-              className={`flex-1 py-3 text-sm font-bold rounded-full transition-all ${form.type === 'meal' ? 'bg-white dark:bg-[#3d262a] shadow-sm text-primary' : 'text-gray-500'}`}
-            >
-              🍚 밥 약속
-            </button>
-            <button
-              onClick={() => setForm((p) => ({ ...p, type: 'drink' }))}
-              className={`flex-1 py-3 text-sm font-bold rounded-full transition-all ${form.type === 'drink' ? 'bg-white dark:bg-[#3d262a] shadow-sm text-primary' : 'text-gray-500'}`}
-            >
-              🍺 술 한잔
-            </button>
-          </div>
-        </section>
 
         {/* 메뉴 선택 (필수) */}
         <section>

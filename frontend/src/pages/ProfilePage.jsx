@@ -16,6 +16,8 @@ const FOOD_OPTIONS = [
   { value: 'chicken', label: '치킨 🍗' },
   { value: 'pizza', label: '피자 🍕' },
   { value: 'snack', label: '분식 🍜' },
+  { value: 'beer', label: '맥주 🍺' },
+  { value: 'soju', label: '소주 🍶' },
 ];
 
 const defaultTimetable = () => Array.from({ length: 5 }, () => Array(9).fill(false));

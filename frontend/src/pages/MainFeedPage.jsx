@@ -11,7 +11,6 @@ export default function MainFeedPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [posts, setPosts] = useState([]);
-  const [type, setType] = useState('');
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -33,10 +32,10 @@ export default function MainFeedPage() {
       .finally(() => setMatchLoading(false));
   }, []);
 
-  const fetchPosts = useCallback(async (pageNum = 1, postType = '') => {
+  const fetchPosts = useCallback(async (pageNum = 1) => {
     setLoading(true);
     try {
-      const { data } = await getPosts({ type: postType, page: pageNum, limit: 10 });
+      const { data } = await getPosts({ page: pageNum, limit: 10 });
       if (pageNum === 1) {
         setPosts(data.posts);
       } else {
@@ -52,13 +51,13 @@ export default function MainFeedPage() {
 
   useEffect(() => {
     setPage(1);
-    fetchPosts(1, type);
-  }, [type, fetchPosts]);
+    fetchPosts(1);
+  }, [fetchPosts]);
 
   const loadMore = () => {
     const next = page + 1;
     setPage(next);
-    fetchPosts(next, type);
+    fetchPosts(next);
   };
 
   const handleTouchStart = (e) => { touchStartY.current = e.touches[0].clientY; };
@@ -68,7 +67,7 @@ export default function MainFeedPage() {
       setRefreshing(true);
       setPage(1);
       Promise.all([
-        fetchPosts(1, type),
+        fetchPosts(1),
         getMatches().then(({ data }) => { setMatchUsers(data.users); setMatchContext(data.context); }).catch(() => {}),
       ]).finally(() => setRefreshing(false));
     }
@@ -182,29 +181,6 @@ export default function MainFeedPage() {
               ))}
             </div>
           )}
-        </div>
-
-        {/* 타입 필터 */}
-        <div className="flex px-5 pb-4">
-          <div className="flex h-14 w-full items-center justify-center rounded-2xl bg-gray-100/80 dark:bg-white/5 p-1.5">
-            {[
-              { value: '', label: '전체' },
-              { value: 'meal', label: '밥 약속' },
-              { value: 'drink', label: '술 한잔' },
-            ].map(({ value, label }) => (
-              <button
-                key={value}
-                onClick={() => setType(value)}
-                className={`flex-1 h-full rounded-xl text-sm font-bold transition-all ${
-                  type === value
-                    ? 'bg-white dark:bg-[#2d1e14] shadow-md text-primary'
-                    : 'text-gray-400'
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
         </div>
 
         {/* 게시물 목록 — 2열 그리드 */}
