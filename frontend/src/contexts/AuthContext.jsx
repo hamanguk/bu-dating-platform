@@ -180,7 +180,7 @@ export const AuthProvider = ({ children }) => {
       if (window.location.pathname === `/chat/${roomId}`) return;
 
       showBrowserNotification(
-        '캠퍼스 데이트 - 새 메시지',
+        '혼밥친구 - 새 메시지',
         lastMessage?.content || '새로운 메시지가 도착했습니다.',
         () => { window.location.href = `/chat/${roomId}`; }
       );
@@ -194,7 +194,7 @@ export const AuthProvider = ({ children }) => {
       const roomId = payload.data?.roomId;
       if (window.location.pathname === `/chat/${roomId}`) return;
       showBrowserNotification(
-        title || '캠퍼스 데이트',
+        title || '혼밥친구',
         body || '새로운 메시지가 도착했습니다.',
         roomId ? () => { window.location.href = `/chat/${roomId}`; } : undefined
       );

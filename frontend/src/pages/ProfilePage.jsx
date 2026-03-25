@@ -55,9 +55,15 @@ export default function ProfilePage() {
     });
   };
 
+  const hasFreePeriod = form.timetable.some((day) => day.some(Boolean));
+
   const handleSave = async () => {
     if (!form.department.trim()) {
       setError('학과는 필수 입력 항목입니다.');
+      return;
+    }
+    if (!hasFreePeriod) {
+      setError('공강 시간을 최소 1개 이상 선택해주세요.');
       return;
     }
     setSaving(true);
@@ -71,10 +77,11 @@ export default function ProfilePage() {
       const { data } = await updateProfile(payload);
       setUser(data.user);
       if (data.user?.profileComplete) {
-        navigate('/', { replace: true });
+        setSuccess('프로필 완성! 메인 페이지로 이동합니다.');
+        setTimeout(() => navigate('/', { replace: true }), 500);
       } else {
-        setSuccess('프로필이 저장되었습니다!');
-        setTimeout(() => setSuccess(''), 3000);
+        setSuccess('저장되었습니다. 학과 입력 + 공강 시간 선택을 완료해주세요!');
+        setTimeout(() => setSuccess(''), 4000);
       }
     } catch (err) {
       setError(err.response?.data?.message || '저장 중 오류가 발생했습니다.');
@@ -185,6 +192,38 @@ export default function ProfilePage() {
           />
         </div>
 
+        {/* 시간표 (필수) */}
+        <div className={`space-y-2 rounded-2xl p-4 shadow-sm border-2 ${
+          hasFreePeriod
+            ? 'bg-white dark:bg-[#2d1e14] border-primary/20'
+            : 'bg-orange-50 dark:bg-orange-900/10 border-primary'
+        }`}>
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-bold text-primary uppercase tracking-wider flex items-center gap-1">
+              <span className="material-symbols-outlined text-[14px]">calendar_month</span>
+              공강 시간표 <span className="text-primary">*</span>
+            </label>
+            {hasFreePeriod ? (
+              <span className="text-[10px] text-green-600 font-bold bg-green-100 dark:bg-green-900/30 px-2 py-0.5 rounded-full">
+                설정 완료
+              </span>
+            ) : (
+              <span className="text-[10px] text-primary font-bold bg-primary/10 px-2 py-0.5 rounded-full animate-pulse">
+                필수 입력
+              </span>
+            )}
+          </div>
+          {!hasFreePeriod && (
+            <p className="text-xs text-primary/80">
+              공강 시간을 선택해야 밥 친구 매칭이 시작됩니다!
+            </p>
+          )}
+          <TimetableSelector
+            timetable={form.timetable}
+            onChange={(t) => setForm((prev) => ({ ...prev, timetable: t }))}
+          />
+        </div>
+
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1">
             <label className="text-xs font-bold text-primary/80 uppercase tracking-wider">MBTI</label>
@@ -282,20 +321,6 @@ export default function ProfilePage() {
                 {label}
               </button>
             ))}
-          </div>
-        </div>
-
-        {/* 시간표 */}
-        <div className="space-y-2">
-          <label className="text-xs font-bold text-primary/80 uppercase tracking-wider flex items-center gap-1">
-            <span className="material-symbols-outlined text-[14px]">calendar_month</span>
-            공강 시간표
-          </label>
-          <div className="bg-white dark:bg-[#2d1e14] rounded-2xl p-4 shadow-sm">
-            <TimetableSelector
-              timetable={form.timetable}
-              onChange={(t) => setForm((prev) => ({ ...prev, timetable: t }))}
-            />
           </div>
         </div>
 

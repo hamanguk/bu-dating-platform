@@ -23,11 +23,15 @@ exports.updateProfile = async (req, res) => {
     if (timetable !== undefined) updateData.timetable = timetable;
     if (isAnonymous !== undefined) updateData.isAnonymous = Boolean(isAnonymous);
 
-    // 프로필 완성 여부 판단 (department 필수)
+    // 프로필 완성 여부 판단 (department + timetable 공강 1개 이상 필수)
     const currentUser = await User.findById(req.user._id);
     const finalDepartment = updateData.department ?? currentUser.department;
-    if (finalDepartment) {
+    const finalTimetable = updateData.timetable ?? currentUser.timetable;
+    const hasFreePeriod = finalTimetable?.some((day) => day?.some(Boolean));
+    if (finalDepartment && hasFreePeriod) {
       updateData.profileComplete = true;
+    } else {
+      updateData.profileComplete = false;
     }
 
     const user = await User.findByIdAndUpdate(req.user._id, updateData, {
