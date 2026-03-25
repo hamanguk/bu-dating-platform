@@ -34,8 +34,6 @@ export default function ProfilePage() {
 
   const [form, setForm] = useState({
     nickname: user?.nickname || '',
-    department: user?.department || '',
-    studentId: user?.studentId || '',
     mbti: user?.mbti || '',
     height: user?.height || '',
     gender: user?.gender || '',
@@ -43,7 +41,6 @@ export default function ProfilePage() {
     foodPreferences: user?.foodPreferences || [],
     diningStyle: user?.diningStyle || '',
     timetable: user?.timetable || defaultTimetable(),
-    isAnonymous: user?.isAnonymous || false,
   });
 
   const handleChange = (e) => {
@@ -89,10 +86,6 @@ export default function ProfilePage() {
   const hasFreePeriod = form.timetable.some((day) => day.some(Boolean));
 
   const handleSave = async () => {
-    if (!form.department.trim()) {
-      setError('학과는 필수 입력 항목입니다.');
-      return;
-    }
     if (!hasFreePeriod) {
       setError('공강 시간을 최소 1개 이상 선택해주세요.');
       return;
@@ -111,7 +104,7 @@ export default function ProfilePage() {
         setSuccess('프로필 완성! 메인 페이지로 이동합니다.');
         setTimeout(() => navigate('/', { replace: true }), 500);
       } else {
-        setSuccess('저장되었습니다. 학과 입력 + 공강 시간 선택을 완료해주세요!');
+        setSuccess('저장되었습니다. 공강 시간 선택을 완료해주세요!');
         setTimeout(() => setSuccess(''), 4000);
       }
     } catch (err) {
@@ -169,7 +162,7 @@ export default function ProfilePage() {
         </div>
         <div className="text-center">
           <div className="flex items-center justify-center gap-1.5">
-            <p className="text-xl font-extrabold dark:text-white">{user?.nickname || user?.name}</p>
+            <p className="text-xl font-extrabold dark:text-white">{user?.nickname || '별명을 설정해주세요'}</p>
             <span className="inline-flex items-center gap-0.5 px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 text-[10px] font-bold rounded-full">
               <span className="material-symbols-outlined text-[12px]">verified</span>
               백석대 인증
@@ -205,10 +198,17 @@ export default function ProfilePage() {
           </div>
         )}
 
+        {/* 익명성 안내 */}
+        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-2xl px-4 py-3 flex items-center gap-2">
+          <span className="material-symbols-outlined text-blue-500 text-[18px]">shield</span>
+          <p className="text-xs text-blue-600 dark:text-blue-300 font-medium">이름과 학과는 공개되지 않으니 안심하고 밥 친구를 찾아보세요!</p>
+        </div>
+
         {/* 닉네임 */}
         <div className="space-y-1">
-          <label className="text-xs font-bold text-primary/80 uppercase tracking-wider">
-            별명 (닉네임)
+          <label className="text-xs font-bold text-primary uppercase tracking-wider flex items-center gap-1">
+            <span className="material-symbols-outlined text-[14px]">badge</span>
+            나를 표현할 별명 <span className="text-primary">*</span>
           </label>
           <div className="flex gap-2">
             <input
@@ -236,28 +236,41 @@ export default function ProfilePage() {
           <p className="text-[10px] text-gray-400">미입력 시 귀여운 랜덤 닉네임이 부여됩니다.</p>
         </div>
 
-        <div className="space-y-1">
-          <label className="text-xs font-bold text-primary/80 uppercase tracking-wider">
-            학과 <span className="text-primary">*</span>
-          </label>
-          <input
-            name="department"
-            value={form.department}
-            onChange={handleChange}
-            placeholder="예: 컴퓨터공학과"
-            className="w-full bg-white dark:bg-[#2d1e14] border-none rounded-2xl h-13 px-5 text-sm font-medium focus:ring-2 focus:ring-primary shadow-sm dark:text-white"
-          />
-        </div>
+        {/* MBTI + 성별 (닉네임 바로 아래 강조 배치) */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-primary uppercase tracking-wider flex items-center gap-1">
+              <span className="material-symbols-outlined text-[14px]">psychology</span>
+              MBTI
+            </label>
+            <select
+              name="mbti"
+              value={form.mbti}
+              onChange={handleChange}
+              className="w-full bg-white dark:bg-[#2d1e14] border-none rounded-2xl h-13 px-5 text-sm font-medium focus:ring-2 focus:ring-primary shadow-sm dark:text-white"
+            >
+              <option value="">선택</option>
+              {MBTI_LIST.map((m) => <option key={m} value={m}>{m}</option>)}
+            </select>
+          </div>
 
-        <div className="space-y-1">
-          <label className="text-xs font-bold text-primary/80 uppercase tracking-wider">학번 (선택)</label>
-          <input
-            name="studentId"
-            value={form.studentId}
-            onChange={handleChange}
-            placeholder="예: 20231234"
-            className="w-full bg-white dark:bg-[#2d1e14] border-none rounded-2xl h-13 px-5 text-sm font-medium focus:ring-2 focus:ring-primary shadow-sm dark:text-white"
-          />
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-primary uppercase tracking-wider flex items-center gap-1">
+              <span className="material-symbols-outlined text-[14px]">wc</span>
+              성별
+            </label>
+            <select
+              name="gender"
+              value={form.gender}
+              onChange={handleChange}
+              className="w-full bg-white dark:bg-[#2d1e14] border-none rounded-2xl h-13 px-5 text-sm font-medium focus:ring-2 focus:ring-primary shadow-sm dark:text-white"
+            >
+              <option value="">선택</option>
+              <option value="male">남성</option>
+              <option value="female">여성</option>
+              <option value="other">기타</option>
+            </select>
+          </div>
         </div>
 
         {/* 시간표 (필수) */}
@@ -290,36 +303,6 @@ export default function ProfilePage() {
             timetable={form.timetable}
             onChange={(t) => setForm((prev) => ({ ...prev, timetable: t }))}
           />
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-primary/80 uppercase tracking-wider">MBTI</label>
-            <select
-              name="mbti"
-              value={form.mbti}
-              onChange={handleChange}
-              className="w-full bg-white dark:bg-[#2d1e14] border-none rounded-2xl h-13 px-5 text-sm font-medium focus:ring-2 focus:ring-primary shadow-sm dark:text-white"
-            >
-              <option value="">선택</option>
-              {MBTI_LIST.map((m) => <option key={m} value={m}>{m}</option>)}
-            </select>
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-primary/80 uppercase tracking-wider">성별</label>
-            <select
-              name="gender"
-              value={form.gender}
-              onChange={handleChange}
-              className="w-full bg-white dark:bg-[#2d1e14] border-none rounded-2xl h-13 px-5 text-sm font-medium focus:ring-2 focus:ring-primary shadow-sm dark:text-white"
-            >
-              <option value="">선택</option>
-              <option value="male">남성</option>
-              <option value="female">여성</option>
-              <option value="other">기타</option>
-            </select>
-          </div>
         </div>
 
         <div className="space-y-1">
@@ -390,25 +373,6 @@ export default function ProfilePage() {
               </button>
             ))}
           </div>
-        </div>
-
-        {/* 익명 모드 토글 */}
-        <div className="flex items-center justify-between bg-white dark:bg-[#2d1e14] rounded-2xl p-5 shadow-sm border border-orange-100 dark:border-white/10">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary text-[20px]">visibility_off</span>
-              <p className="text-sm font-bold dark:text-white">익명 모드</p>
-            </div>
-            <p className="text-xs text-gray-400 mt-1">다른 사용자에게 이름/사진을 숨깁니다.</p>
-          </div>
-          <label className="relative flex h-[31px] w-[51px] shrink-0 cursor-pointer items-center rounded-full p-0.5 transition-colors"
-            style={{ backgroundColor: form.isAnonymous ? '#FF8C00' : '#e5d5c5' }}>
-            <div
-              className="h-[27px] w-[27px] rounded-full bg-white shadow-md transition-transform"
-              style={{ transform: form.isAnonymous ? 'translateX(20px)' : 'translateX(0)' }}
-            />
-            <input type="checkbox" name="isAnonymous" checked={form.isAnonymous} onChange={handleChange} className="hidden" />
-          </label>
         </div>
 
         <button

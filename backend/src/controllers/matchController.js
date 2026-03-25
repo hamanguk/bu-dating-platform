@@ -61,7 +61,7 @@ exports.getMatches = async (req, res) => {
     }
 
     let users = await User.find(baseFilter)
-      .select('name department mbti gender profileImage foodPreferences diningStyle timetable bio')
+      .select('nickname mbti gender profileImage foodPreferences diningStyle timetable bio')
       .limit(50);
 
     // foodPreferences 겹침 기반 정렬

@@ -112,7 +112,7 @@ export default function MainFeedPage() {
               <h2 className="text-lg font-bold leading-tight text-primary">
                 백석대 공강 시간에<br />같이 밥 먹을 친구 찾기
               </h2>
-              <p className="text-xs mt-1 text-primary/80">학교 메일 인증 완료 사용자만 이용 가능</p>
+              <p className="text-xs mt-1 text-primary/80">이름과 학과는 공개되지 않으니 안심하세요!</p>
             </div>
             <div className="absolute right-[-20px] top-[-20px] opacity-10">
               <span className="material-symbols-outlined text-[160px] text-primary">restaurant</span>
@@ -176,13 +176,10 @@ export default function MainFeedPage() {
                       </div>
                     )}
                   </div>
-                  <p className="text-xs font-bold dark:text-white truncate text-center">{u.name}</p>
-                  <p className="text-[10px] text-gray-400 truncate text-center">{u.department}</p>
-                  {u.mbti && (
-                    <span className="block mt-1 mx-auto w-fit px-2 py-0.5 bg-primary/10 text-primary text-[9px] font-bold rounded-full">
-                      {u.mbti}
-                    </span>
-                  )}
+                  <p className="text-xs font-bold dark:text-white truncate text-center">{u.nickname || '익명'}</p>
+                  <p className="text-[10px] text-gray-400 truncate text-center">
+                    {[u.mbti, u.gender === 'male' ? '남' : u.gender === 'female' ? '여' : ''].filter(Boolean).join(' / ') || ''}
+                  </p>
                   {u.foodOverlap > 0 && (
                     <span className="block mt-1 mx-auto w-fit px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-600 text-[9px] font-bold rounded-full">
                       메뉴 {u.foodOverlap}개 겹침

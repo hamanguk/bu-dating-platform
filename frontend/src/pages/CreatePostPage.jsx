@@ -31,7 +31,6 @@ export default function CreatePostPage() {
     mealTime: '',
     participantsCount: 2,
     genderPreference: '',
-    isAnonymous: false,
   });
 
   const isValid = form.title.trim().length >= 1 && form.description.trim().length >= 10 && form.menuCategory.length > 0 && form.mealTime;
@@ -88,7 +87,6 @@ export default function CreatePostPage() {
       formData.append('mealTime', form.mealTime);
       formData.append('participantsCount', form.participantsCount);
       formData.append('genderPreference', form.genderPreference || 'any');
-      formData.append('isAnonymous', form.isAnonymous);
       files.forEach((f) => formData.append('images', f));
 
       await createPost(formData);
@@ -300,14 +298,6 @@ export default function CreatePostPage() {
           <p className="text-xs text-gray-400 mt-1 text-right">{form.description.length}/1000</p>
         </section>
 
-        {/* 익명 */}
-        <label className="flex items-center justify-between bg-white dark:bg-[#2d1e14] rounded-xl p-4 shadow-sm cursor-pointer">
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary">visibility_off</span>
-            <span className="text-sm font-bold dark:text-white">익명으로 게시</span>
-          </div>
-          <input type="checkbox" name="isAnonymous" checked={form.isAnonymous} onChange={handleChange} className="w-5 h-5 accent-primary" />
-        </label>
       </div>
 
       {/* 게시 버튼 */}

@@ -132,7 +132,7 @@ export default function ChatPage() {
               <div className={`flex flex-col ${isMe ? 'items-end' : ''}`}>
                 {!isMe && (
                   <span className="text-[11px] font-semibold text-[#a14553] ml-1 mb-1">
-                    {msg.sender?.nickname || msg.sender?.name || ''}
+                    {msg.sender?.nickname || '익명'}
                   </span>
                 )}
                 <div className="flex items-end gap-1.5">

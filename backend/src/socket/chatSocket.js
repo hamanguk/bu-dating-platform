@@ -82,7 +82,7 @@ const initSocket = (io) => {
       if (!token) return next(new Error('인증 토큰이 필요합니다.'));
 
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      const user = await User.findById(decoded.id).select('name nickname profileImage _id');
+      const user = await User.findById(decoded.id).select('nickname profileImage _id');
       if (!user) return next(new Error('유효하지 않은 사용자입니다.'));
 
       socket.user = user;
@@ -93,7 +93,7 @@ const initSocket = (io) => {
   });
 
   io.on('connection', (socket) => {
-    console.log(`🔌 Socket connected: ${socket.user.name} (${socket.id})`);
+    console.log(`🔌 Socket connected: ${socket.user.nickname} (${socket.id})`);
 
     // 개인 채널 join (실시간 알림용)
     socket.join(`user_${socket.user._id}`);
@@ -112,7 +112,7 @@ const initSocket = (io) => {
         socket.join(roomId);
         socket._activeRoom = roomId;
         socket.emit('joined_room', { roomId });
-        console.log(`📩 ${socket.user.name} joined room ${roomId}`);
+        console.log(`📩 ${socket.user.nickname} joined room ${roomId}`);
       } catch (err) {
         socket.emit('error', { message: '채팅방 입장 중 오류가 발생했습니다.' });
       }
@@ -145,7 +145,7 @@ const initSocket = (io) => {
           readBy: [socket.user._id],
         });
 
-        await message.populate('sender', 'name nickname profileImage');
+        await message.populate('sender', 'nickname profileImage');
 
         const lastMessage = {
           content: message.content,
@@ -168,7 +168,7 @@ const initSocket = (io) => {
         });
 
         // 오프라인 사용자에게 FCM 푸시 알림
-        sendPushToOfflineUsers(io, room, socket.user.nickname || socket.user.name, content.trim());
+        sendPushToOfflineUsers(io, room, socket.user.nickname || '알 수 없음', content.trim());
       } catch (err) {
         console.error('Send message error:', err);
         socket.emit('error', { message: '메시지 전송 중 오류가 발생했습니다.' });
@@ -207,13 +207,13 @@ const initSocket = (io) => {
     socket.on('typing', ({ roomId, isTyping }) => {
       socket.to(roomId).emit('user_typing', {
         userId: socket.user._id,
-        name: socket.user.nickname || socket.user.name,
+        name: socket.user.nickname || '알 수 없음',
         isTyping,
       });
     });
 
     socket.on('disconnect', (reason) => {
-      console.log(`🔌 Socket disconnected: ${socket.user.name} (${reason})`);
+      console.log(`🔌 Socket disconnected: ${socket.user.nickname} (${reason})`);
       socket.leave(`user_${socket.user._id}`);
     });
   });

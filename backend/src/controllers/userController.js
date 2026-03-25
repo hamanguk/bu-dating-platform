@@ -55,15 +55,10 @@ exports.updateProfile = async (req, res) => {
       updateData.nickname = randomNick;
     }
 
-    // 프로필 완성 여부 판단 (department + timetable 공강 1개 이상 필수)
-    const finalDepartment = updateData.department ?? currentUser.department;
+    // 프로필 완성 여부 판단 (timetable 공강 1개 이상 필수)
     const finalTimetable = updateData.timetable ?? currentUser.timetable;
     const hasFreePeriod = finalTimetable?.some((day) => day?.some(Boolean));
-    if (finalDepartment && hasFreePeriod) {
-      updateData.profileComplete = true;
-    } else {
-      updateData.profileComplete = false;
-    }
+    updateData.profileComplete = !!hasFreePeriod;
 
     const user = await User.findByIdAndUpdate(req.user._id, updateData, {
       new: true,
@@ -135,27 +130,19 @@ exports.checkNickname = async (req, res) => {
  */
 exports.getUserProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).select(
-      'name nickname department mbti height gender bio interests foodPreferences diningStyle timetable isAnonymous profileImage createdAt'
-    );
+    const isMe = req.user._id.toString() === req.params.id;
+
+    // 본인이면 전체 정보, 타인이면 닉네임/MBTI/성별만
+    const selectFields = isMe
+      ? 'nickname department mbti height gender bio interests foodPreferences diningStyle timetable profileImage createdAt'
+      : 'nickname mbti gender bio foodPreferences diningStyle profileImage createdAt';
+
+    const user = await User.findById(req.params.id).select(selectFields);
     if (!user) {
       return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
     }
-    const isMe = req.user._id.toString() === req.params.id;
-    const obj = user.toObject();
 
-    // 학과명은 다른 유저에게 비노출 (DB에는 저장)
-    if (!isMe) {
-      delete obj.department;
-    }
-
-    // 익명 모드 처리
-    if (user.isAnonymous && !isMe) {
-      obj.name = '익명';
-      obj.profileImage = '';
-    }
-
-    res.json(obj);
+    res.json(user.toObject());
   } catch (err) {
     res.status(500).json({ message: '사용자 정보를 불러오는 중 오류가 발생했습니다.' });
   }

@@ -150,13 +150,13 @@ export default function PostDetailPage() {
         <div>
           <h2 className="text-2xl font-bold dark:text-white">{post.title}</h2>
           <p className="text-sm text-gray-500 mt-1 flex items-center gap-1.5">
-            <span>{post.isAnonymous ? '익명' : (post.author?.nickname || post.author?.name)}</span>
-            {!post.isAnonymous && (
-              <span className="inline-flex items-center gap-0.5 px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-500 text-[10px] font-bold rounded-full">
-                <span className="material-symbols-outlined text-[11px]">verified</span>
-                백석대 인증
-              </span>
-            )}
+            <span>{post.author?.nickname || '익명'}</span>
+            {post.author?.mbti && <span className="text-xs text-primary/60">{post.author.mbti}</span>}
+            {post.author?.gender && <span className="text-xs text-gray-400">{post.author.gender === 'male' ? '남' : post.author.gender === 'female' ? '여' : ''}</span>}
+            <span className="inline-flex items-center gap-0.5 px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-500 text-[10px] font-bold rounded-full">
+              <span className="material-symbols-outlined text-[11px]">verified</span>
+              백석대 인증
+            </span>
           </p>
         </div>
 
@@ -165,7 +165,7 @@ export default function PostDetailPage() {
         )}
 
         {/* 작성자 정보 */}
-        {!post.isAnonymous && post.author && (
+        {post.author && (
           <div className="bg-white dark:bg-[#2d1e14] rounded-2xl p-5 flex items-center gap-4 border border-gray-100 dark:border-white/5">
             <div
               className="w-12 h-12 rounded-full bg-primary/10 bg-cover bg-center"
@@ -179,17 +179,24 @@ export default function PostDetailPage() {
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <p className="font-bold text-sm dark:text-white">{post.author.nickname || post.author.name}</p>
+                <p className="font-bold text-sm dark:text-white">{post.author.nickname || '익명'}</p>
                 <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-500 text-[9px] font-bold rounded-full">
                   <span className="material-symbols-outlined text-[10px]">verified</span>
                   백석대 인증
                 </span>
               </div>
-              {post.author.mbti && (
-                <span className="inline-block mt-1 px-2 py-0.5 bg-primary/10 text-primary text-[10px] font-bold rounded-full">
-                  {post.author.mbti}
-                </span>
-              )}
+              <div className="flex items-center gap-1.5 mt-1">
+                {post.author.mbti && (
+                  <span className="px-2 py-0.5 bg-primary/10 text-primary text-[10px] font-bold rounded-full">
+                    {post.author.mbti}
+                  </span>
+                )}
+                {post.author.gender && (
+                  <span className="px-2 py-0.5 bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-300 text-[10px] font-bold rounded-full">
+                    {post.author.gender === 'male' ? '남성' : post.author.gender === 'female' ? '여성' : '기타'}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         )}

@@ -32,7 +32,6 @@ export default function EditPostPage() {
     menuCategory: 'other',
     participantsCount: 2,
     genderPreference: '',
-    isAnonymous: false,
   });
 
   useEffect(() => {
@@ -50,7 +49,6 @@ export default function EditPostPage() {
           menuCategory: data.menuCategory || 'other',
           participantsCount: data.participantsCount || 2,
           genderPreference: data.genderPreference || '',
-          isAnonymous: data.isAnonymous || false,
         });
         setExistingImages(data.images || []);
       })
@@ -102,7 +100,6 @@ export default function EditPostPage() {
       formData.append('menuCategory', form.menuCategory);
       formData.append('participantsCount', form.participantsCount);
       formData.append('genderPreference', form.genderPreference || 'any');
-      formData.append('isAnonymous', form.isAnonymous);
       files.forEach((f) => formData.append('images', f));
 
       await updatePost(id, formData);
@@ -289,14 +286,6 @@ export default function EditPostPage() {
           <p className="text-xs text-gray-400 mt-1 text-right">{form.description.length}/1000</p>
         </section>
 
-        {/* 익명 */}
-        <label className="flex items-center justify-between bg-white dark:bg-[#2d1e14] rounded-xl p-4 shadow-sm cursor-pointer">
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary">visibility_off</span>
-            <span className="text-sm font-bold dark:text-white">익명으로 게시</span>
-          </div>
-          <input type="checkbox" name="isAnonymous" checked={form.isAnonymous} onChange={handleChange} className="w-5 h-5 accent-primary" />
-        </label>
       </div>
 
       {/* 수정 완료 버튼 */}

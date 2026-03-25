@@ -23,7 +23,7 @@ export default function ChatListPage() {
     if (room.name) return room.name;
     if (room.type === 'direct') {
       const other = room.participants?.find((p) => p._id !== myId);
-      return other?.nickname || other?.name || '상대방';
+      return other?.nickname || '상대방';
     }
     return '그룹 채팅';
   };
