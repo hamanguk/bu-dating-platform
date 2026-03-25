@@ -26,14 +26,14 @@ export default function CreatePostPage() {
     type: 'meal',
     title: '',
     description: '',
-    menuCategory: '',
+    menuCategory: [],
     mealTime: '',
     participantsCount: 2,
     genderPreference: '',
     isAnonymous: false,
   });
 
-  const isValid = form.title.trim().length >= 1 && form.description.trim().length >= 10 && form.menuCategory && form.mealTime;
+  const isValid = form.title.trim().length >= 1 && form.description.trim().length >= 10 && form.menuCategory.length > 0 && form.mealTime;
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -69,8 +69,8 @@ export default function CreatePostPage() {
       setError('설명을 10자 이상 입력해주세요.');
       return;
     }
-    if (!form.menuCategory) {
-      setError('메뉴를 선택해주세요.');
+    if (form.menuCategory.length === 0) {
+      setError('메뉴를 최소 1개 선택해주세요.');
       return;
     }
     if (!form.mealTime) {
@@ -84,7 +84,7 @@ export default function CreatePostPage() {
       formData.append('type', form.type);
       formData.append('title', form.title.trim());
       formData.append('description', form.description.trim());
-      formData.append('menuCategory', form.menuCategory);
+      formData.append('menuCategory', JSON.stringify(form.menuCategory));
       formData.append('mealTime', form.mealTime);
       formData.append('participantsCount', form.participantsCount);
       formData.append('genderPreference', form.genderPreference || 'any');
@@ -105,7 +105,7 @@ export default function CreatePostPage() {
     }
   };
 
-  const selectedMenu = MENU_OPTIONS.find((m) => m.value === form.menuCategory);
+  const selectedMenuIcons = form.menuCategory.map((v) => MENU_OPTIONS.find((m) => m.value === v)?.icon).filter(Boolean).join(' ');
 
   return (
     <div className="flex flex-col bg-background-light dark:bg-background-dark min-h-screen pb-40">
@@ -133,7 +133,7 @@ export default function CreatePostPage() {
                 <p className="text-primary text-xs font-bold uppercase tracking-widest">미리보기</p>
               </div>
               <p className="text-[#1d0c0f] dark:text-white text-xl font-bold">
-                {selectedMenu?.icon} {form.title}
+                {selectedMenuIcons} {form.title}
               </p>
               <p className="text-primary/70 text-sm font-medium mt-1">
                 {form.type === 'meal' ? '밥 약속' : '술 한잔'} · {form.participantsCount}명
@@ -164,25 +164,34 @@ export default function CreatePostPage() {
 
         {/* 메뉴 선택 (필수) */}
         <section>
-          <h3 className="text-sm font-bold text-primary/80 uppercase tracking-wider mb-3">
+          <h3 className="text-sm font-bold text-primary/80 uppercase tracking-wider mb-1">
             오늘 먹고 싶은 메뉴 <span className="text-primary">*</span>
           </h3>
+          <p className="text-[11px] text-gray-400 mb-3">복수 선택 가능</p>
           <div className="grid grid-cols-3 gap-2">
-            {MENU_OPTIONS.map(({ value, label, icon }) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setForm((p) => ({ ...p, menuCategory: value }))}
-                className={`py-3 rounded-xl text-sm font-bold transition-all flex flex-col items-center gap-1 ${
-                  form.menuCategory === value
-                    ? 'bg-primary text-white shadow-md scale-105'
-                    : 'bg-white dark:bg-[#2d1e14] text-gray-600 dark:text-gray-300 shadow-sm'
-                }`}
-              >
-                <span className="text-xl">{icon}</span>
-                <span className="text-xs">{label}</span>
-              </button>
-            ))}
+            {MENU_OPTIONS.map(({ value, label, icon }) => {
+              const selected = form.menuCategory.includes(value);
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setForm((p) => ({
+                    ...p,
+                    menuCategory: selected
+                      ? p.menuCategory.filter((v) => v !== value)
+                      : [...p.menuCategory, value],
+                  }))}
+                  className={`py-3 rounded-xl text-sm font-bold transition-all flex flex-col items-center gap-1 ${
+                    selected
+                      ? 'bg-primary text-white shadow-md scale-105'
+                      : 'bg-white dark:bg-[#2d1e14] text-gray-600 dark:text-gray-300 shadow-sm'
+                  }`}
+                >
+                  <span className="text-xl">{icon}</span>
+                  <span className="text-xs">{label}</span>
+                </button>
+              );
+            })}
           </div>
         </section>
 

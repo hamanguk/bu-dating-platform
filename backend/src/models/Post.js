@@ -23,11 +23,14 @@ const postSchema = new mongoose.Schema(
       maxlength: 1000,
       default: '',
     },
-    // 먹고 싶은 메뉴 카테고리 (필수)
+    // 먹고 싶은 메뉴 카테고리 (필수, 복수 선택)
     menuCategory: {
-      type: String,
+      type: [String],
       enum: ['korean', 'chinese', 'japanese', 'western', 'cafe', 'chicken', 'pizza', 'snack', 'other'],
-      required: true,
+      validate: {
+        validator: (v) => v && v.length > 0,
+        message: '메뉴 카테고리를 최소 1개 선택해주세요.',
+      },
     },
     // 식사 시간 (필수)
     mealTime: {

@@ -44,8 +44,9 @@ export default function PostCard({ post }) {
   };
 
   const coverImage = post.images?.[0];
-  const menuIcon = MENU_ICONS[post.menuCategory] || '🍽️';
-  const bgGradient = MENU_BG[post.menuCategory] || MENU_BG.other;
+  const categories = Array.isArray(post.menuCategory) ? post.menuCategory : [post.menuCategory];
+  const menuIcon = categories.map((c) => MENU_ICONS[c] || '🍽️').join(' ');
+  const bgGradient = MENU_BG[categories[0]] || MENU_BG.other;
 
   return (
     <Link to={`/posts/${post._id}`}>

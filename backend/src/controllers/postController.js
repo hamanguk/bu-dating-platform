@@ -88,8 +88,13 @@ exports.createPost = async (req, res) => {
     if (!type || !title) {
       return res.status(400).json({ message: '타입과 제목은 필수입니다.' });
     }
-    if (!menuCategory) {
-      return res.status(400).json({ message: '메뉴 카테고리는 필수입니다.' });
+    // menuCategory: FormData에서 문자열/JSON으로 올 수 있음
+    let categories = menuCategory;
+    if (typeof categories === 'string') {
+      try { categories = JSON.parse(categories); } catch { categories = [categories]; }
+    }
+    if (!Array.isArray(categories) || categories.length === 0) {
+      return res.status(400).json({ message: '메뉴 카테고리를 최소 1개 선택해주세요.' });
     }
     if (!mealTime) {
       return res.status(400).json({ message: '식사 시간은 필수입니다.' });
@@ -102,7 +107,7 @@ exports.createPost = async (req, res) => {
       type,
       title: title.trim(),
       description: description?.trim() || '',
-      menuCategory,
+      menuCategory: categories,
       mealTime,
       participantsCount: parseInt(participantsCount) || 2,
       genderPreference: genderPreference || 'any',
@@ -138,7 +143,13 @@ exports.updatePost = async (req, res) => {
 
     if (title !== undefined) post.title = title.trim();
     if (description !== undefined) post.description = description.trim();
-    if (menuCategory !== undefined) post.menuCategory = menuCategory;
+    if (menuCategory !== undefined) {
+      let cats = menuCategory;
+      if (typeof cats === 'string') {
+        try { cats = JSON.parse(cats); } catch { cats = [cats]; }
+      }
+      post.menuCategory = Array.isArray(cats) ? cats : [cats];
+    }
     if (mealTime !== undefined) post.mealTime = mealTime;
     if (participantsCount !== undefined) post.participantsCount = parseInt(participantsCount) || 2;
     if (genderPreference !== undefined) post.genderPreference = genderPreference;
