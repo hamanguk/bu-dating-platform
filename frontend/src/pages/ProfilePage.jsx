@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { updateProfile, uploadProfileImage } from '../services/api';
+import { updateProfile, uploadProfileImage, checkNickname } from '../services/api';
 import TimetableSelector from '../components/TimetableSelector';
 
 const MBTI_LIST = ['INTJ','INTP','ENTJ','ENTP','INFJ','INFP','ENFJ','ENFP',
@@ -29,8 +29,11 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
+  const [nicknameStatus, setNicknameStatus] = useState(null); // null | 'checking' | 'available' | 'taken'
+  const [nicknameMsg, setNicknameMsg] = useState('');
 
   const [form, setForm] = useState({
+    nickname: user?.nickname || '',
     department: user?.department || '',
     studentId: user?.studentId || '',
     mbti: user?.mbti || '',
@@ -45,6 +48,10 @@ export default function ProfilePage() {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+    if (name === 'nickname') {
+      setNicknameStatus(null);
+      setNicknameMsg('');
+    }
     setForm((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
   };
 
@@ -55,6 +62,28 @@ export default function ProfilePage() {
         : [...prev.foodPreferences, food];
       return { ...prev, foodPreferences: prefs };
     });
+  };
+
+  const handleCheckNickname = async () => {
+    if (!form.nickname.trim()) {
+      setNicknameMsg('닉네임을 입력해주세요.');
+      setNicknameStatus('taken');
+      return;
+    }
+    if (form.nickname.trim().length > 20) {
+      setNicknameMsg('닉네임은 20자 이내로 입력해주세요.');
+      setNicknameStatus('taken');
+      return;
+    }
+    setNicknameStatus('checking');
+    try {
+      const { data } = await checkNickname(form.nickname.trim());
+      setNicknameStatus(data.available ? 'available' : 'taken');
+      setNicknameMsg(data.message);
+    } catch {
+      setNicknameStatus('taken');
+      setNicknameMsg('확인 중 오류가 발생했습니다.');
+    }
   };
 
   const hasFreePeriod = form.timetable.some((day) => day.some(Boolean));
@@ -139,7 +168,13 @@ export default function ProfilePage() {
           <input ref={fileRef} type="file" accept=".jpg,.jpeg,.png" className="hidden" onChange={handleImageUpload} />
         </div>
         <div className="text-center">
-          <p className="text-xl font-extrabold dark:text-white">{user?.name}</p>
+          <div className="flex items-center justify-center gap-1.5">
+            <p className="text-xl font-extrabold dark:text-white">{user?.nickname || user?.name}</p>
+            <span className="inline-flex items-center gap-0.5 px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 text-[10px] font-bold rounded-full">
+              <span className="material-symbols-outlined text-[12px]">verified</span>
+              백석대 인증
+            </span>
+          </div>
           <p className="text-sm text-primary">{user?.email}</p>
         </div>
       </div>
@@ -169,6 +204,37 @@ export default function ProfilePage() {
             <p className="text-green-600 text-sm">{success}</p>
           </div>
         )}
+
+        {/* 닉네임 */}
+        <div className="space-y-1">
+          <label className="text-xs font-bold text-primary/80 uppercase tracking-wider">
+            별명 (닉네임)
+          </label>
+          <div className="flex gap-2">
+            <input
+              name="nickname"
+              value={form.nickname}
+              onChange={handleChange}
+              maxLength={20}
+              placeholder="예: 배고픈 백석인"
+              className="flex-1 bg-white dark:bg-[#2d1e14] border-none rounded-2xl h-13 px-5 text-sm font-medium focus:ring-2 focus:ring-primary shadow-sm dark:text-white"
+            />
+            <button
+              type="button"
+              onClick={handleCheckNickname}
+              disabled={nicknameStatus === 'checking'}
+              className="px-4 h-13 rounded-2xl bg-primary text-white text-xs font-bold whitespace-nowrap disabled:opacity-50"
+            >
+              {nicknameStatus === 'checking' ? '확인 중...' : '중복 확인'}
+            </button>
+          </div>
+          {nicknameMsg && (
+            <p className={`text-xs mt-1 ${nicknameStatus === 'available' ? 'text-green-500' : 'text-red-500'}`}>
+              {nicknameMsg}
+            </p>
+          )}
+          <p className="text-[10px] text-gray-400">미입력 시 귀여운 랜덤 닉네임이 부여됩니다.</p>
+        </div>
 
         <div className="space-y-1">
           <label className="text-xs font-bold text-primary/80 uppercase tracking-wider">

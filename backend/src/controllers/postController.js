@@ -16,15 +16,19 @@ exports.getPosts = async (req, res) => {
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(parseInt(limit))
-        .populate('author', 'name department profileImage isAnonymous mbti foodPreferences'),
+        .populate('author', 'name nickname department profileImage isAnonymous mbti foodPreferences'),
       Post.countDocuments(filter),
     ]);
 
-    // 익명 작성자 처리
+    // 작성자 처리: 닉네임 표시 + 학과 비노출 + 익명 처리
     const processed = posts.map((post) => {
       const obj = post.toObject();
+      // 학과명은 다른 유저에게 비노출
+      if (obj.author) {
+        delete obj.author.department;
+      }
       if (post.isAnonymous) {
-        obj.author = { name: '익명', department: obj.author?.department || '', profileImage: '' };
+        obj.author = { nickname: '익명', profileImage: '' };
       }
       obj.likeCount = post.likes.length;
       obj.isLiked = post.likes.some((id) => id.toString() === req.user._id.toString());
@@ -55,19 +59,24 @@ exports.getPost = async (req, res) => {
   try {
     const post = await Post.findOne({ _id: req.params.id, isDeleted: false }).populate(
       'author',
-      'name department profileImage isAnonymous mbti foodPreferences'
+      'name nickname department profileImage isAnonymous mbti foodPreferences'
     );
     if (!post) {
       return res.status(404).json({ message: '게시물을 찾을 수 없습니다.' });
     }
 
     const obj = post.toObject();
-    if (post.isAnonymous && post.author._id.toString() !== req.user._id.toString()) {
-      obj.author = { name: '익명', department: '', profileImage: '' };
+    const isOwner = post.author._id.toString() === req.user._id.toString();
+    // 학과명은 다른 유저에게 비노출
+    if (!isOwner && obj.author) {
+      delete obj.author.department;
+    }
+    if (post.isAnonymous && !isOwner) {
+      obj.author = { nickname: '익명', profileImage: '' };
     }
     obj.likeCount = post.likes.length;
     obj.isLiked = post.likes.some((id) => id.toString() === req.user._id.toString());
-    obj.isOwner = post.author._id.toString() === req.user._id.toString();
+    obj.isOwner = isOwner;
     delete obj.likes;
 
     res.json(obj);
@@ -113,7 +122,7 @@ exports.createPost = async (req, res) => {
       isAnonymous: isAnonymous === 'true' || isAnonymous === true,
     });
 
-    await post.populate('author', 'name department profileImage');
+    await post.populate('author', 'name nickname department profileImage');
 
     res.status(201).json({ message: '게시물이 작성되었습니다.', post });
   } catch (err) {
@@ -159,7 +168,7 @@ exports.updatePost = async (req, res) => {
     }
 
     await post.save();
-    await post.populate('author', 'name department profileImage');
+    await post.populate('author', 'name nickname department profileImage');
 
     res.json({ message: '게시물이 수정되었습니다.', post });
   } catch (err) {

@@ -41,6 +41,7 @@ export const uploadProfileImage = (formData) =>
   api.post('/users/profile-image', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
+export const checkNickname = (nickname) => api.get('/users/check-nickname', { params: { nickname } });
 export const getUserProfile = (id) => api.get(`/users/${id}`);
 
 // Match (공강 기반 매칭)

@@ -149,8 +149,14 @@ export default function PostDetailPage() {
       <div className="p-6 space-y-5">
         <div>
           <h2 className="text-2xl font-bold dark:text-white">{post.title}</h2>
-          <p className="text-sm text-gray-500 mt-1">
-            {post.isAnonymous ? '익명' : post.author?.name} · {post.author?.department || ''}
+          <p className="text-sm text-gray-500 mt-1 flex items-center gap-1.5">
+            <span>{post.isAnonymous ? '익명' : (post.author?.nickname || post.author?.name)}</span>
+            {!post.isAnonymous && (
+              <span className="inline-flex items-center gap-0.5 px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-500 text-[10px] font-bold rounded-full">
+                <span className="material-symbols-outlined text-[11px]">verified</span>
+                백석대 인증
+              </span>
+            )}
           </p>
         </div>
 
@@ -172,8 +178,13 @@ export default function PostDetailPage() {
               )}
             </div>
             <div>
-              <p className="font-bold text-sm dark:text-white">{post.author.name}</p>
-              <p className="text-xs text-gray-400">{post.author.department}</p>
+              <div className="flex items-center gap-1.5">
+                <p className="font-bold text-sm dark:text-white">{post.author.nickname || post.author.name}</p>
+                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-500 text-[9px] font-bold rounded-full">
+                  <span className="material-symbols-outlined text-[10px]">verified</span>
+                  백석대 인증
+                </span>
+              </div>
               {post.author.mbti && (
                 <span className="inline-block mt-1 px-2 py-0.5 bg-primary/10 text-primary text-[10px] font-bold rounded-full">
                   {post.author.mbti}

@@ -18,6 +18,12 @@ const userSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    nickname: {
+      type: String,
+      trim: true,
+      maxlength: 20,
+      default: null,
+    },
     department: {
       type: String,
       trim: true,
@@ -68,10 +74,6 @@ const userSchema = new mongoose.Schema(
       type: [[Boolean]],
       default: defaultTimetable,
     },
-    isAnonymous: {
-      type: Boolean,
-      default: false,
-    },
     profileImage: {
       type: String,
       default: '',
@@ -104,5 +106,6 @@ const userSchema = new mongoose.Schema(
 );
 
 userSchema.index({ email: 1 });
+userSchema.index({ nickname: 1 }, { unique: true, sparse: true });
 
 module.exports = mongoose.model('User', userSchema);

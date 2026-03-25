@@ -130,8 +130,14 @@ export default function PostCard({ post }) {
         {/* 텍스트 */}
         <div className="p-2.5">
           <h3 className="text-sm font-bold dark:text-white truncate leading-tight">{post.title}</h3>
-          <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5 truncate">
-            {post.isAnonymous ? '익명' : post.author?.name} · {post.author?.department || ''}
+          <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5 truncate flex items-center gap-1">
+            <span>{post.isAnonymous ? '익명' : (post.author?.nickname || post.author?.name)}</span>
+            {!post.isAnonymous && (
+              <span className="inline-flex items-center gap-0.5 px-1.5 py-px bg-blue-100 dark:bg-blue-900/30 text-blue-500 text-[8px] font-bold rounded-full flex-shrink-0">
+                <span className="material-symbols-outlined text-[9px]">verified</span>
+                인증
+              </span>
+            )}
           </p>
           <div className="flex items-center justify-between mt-1.5 text-[10px] text-gray-400">
             <span>{MEAL_TIME_LABEL[post.mealTime] || ''} · {new Date(post.createdAt).toLocaleDateString('ko-KR')}</span>

@@ -1,6 +1,23 @@
 const User = require('../models/User');
 const { cloudinary } = require('../middleware/upload');
 
+// 랜덤 닉네임 생성용 풀
+const RANDOM_ADJECTIVES = [
+  '배고픈', '졸린', '행복한', '신나는', '용감한', '귀여운', '멋진', '활발한',
+  '조용한', '웃는', '꿈꾸는', '달리는', '노래하는', '춤추는', '빛나는', '따뜻한',
+];
+const RANDOM_NOUNS = [
+  '백석인', '대학생', '학우', '밥친구', '식탐러', '캠퍼스인', '탐험가', '미식가',
+  '산책러', '독서가', '커피러버', '라면왕', '치킨매니아', '공강러', '도서관인', '기숙사생',
+];
+
+const generateRandomNickname = () => {
+  const adj = RANDOM_ADJECTIVES[Math.floor(Math.random() * RANDOM_ADJECTIVES.length)];
+  const noun = RANDOM_NOUNS[Math.floor(Math.random() * RANDOM_NOUNS.length)];
+  const num = Math.floor(Math.random() * 1000);
+  return `${adj} ${noun}${num}`;
+};
+
 /**
  * PUT /api/users/profile
  * 프로필 업데이트 (department 포함)
@@ -8,7 +25,7 @@ const { cloudinary } = require('../middleware/upload');
 exports.updateProfile = async (req, res) => {
   try {
     const { department, studentId, mbti, height, gender, bio, interests,
-            foodPreferences, diningStyle, timetable, isAnonymous } = req.body;
+            foodPreferences, diningStyle, timetable, isAnonymous, nickname } = req.body;
 
     const updateData = {};
     if (department !== undefined) updateData.department = department.trim();
@@ -22,9 +39,23 @@ exports.updateProfile = async (req, res) => {
     if (diningStyle !== undefined) updateData.diningStyle = diningStyle;
     if (timetable !== undefined) updateData.timetable = timetable;
     if (isAnonymous !== undefined) updateData.isAnonymous = Boolean(isAnonymous);
+    if (nickname !== undefined) updateData.nickname = nickname.trim() || null;
+
+    // 닉네임이 비어있으면 랜덤 닉네임 부여
+    const currentUser = await User.findById(req.user._id);
+    if (!updateData.nickname && !currentUser.nickname) {
+      let randomNick = generateRandomNickname();
+      let attempts = 0;
+      while (attempts < 10) {
+        const exists = await User.findOne({ nickname: randomNick });
+        if (!exists) break;
+        randomNick = generateRandomNickname();
+        attempts++;
+      }
+      updateData.nickname = randomNick;
+    }
 
     // 프로필 완성 여부 판단 (department + timetable 공강 1개 이상 필수)
-    const currentUser = await User.findById(req.user._id);
     const finalDepartment = updateData.department ?? currentUser.department;
     const finalTimetable = updateData.timetable ?? currentUser.timetable;
     const hasFreePeriod = finalTimetable?.some((day) => day?.some(Boolean));
@@ -75,27 +106,56 @@ exports.uploadProfileImage = async (req, res) => {
 };
 
 /**
+ * GET /api/users/check-nickname
+ * 닉네임 중복 확인
+ */
+exports.checkNickname = async (req, res) => {
+  try {
+    const { nickname } = req.query;
+    if (!nickname || !nickname.trim()) {
+      return res.status(400).json({ message: '닉네임을 입력해주세요.' });
+    }
+    if (nickname.trim().length > 20) {
+      return res.status(400).json({ message: '닉네임은 20자 이내로 입력해주세요.' });
+    }
+    const existing = await User.findOne({ nickname: nickname.trim() });
+    // 본인의 현재 닉네임이면 사용 가능
+    if (existing && existing._id.toString() !== req.user._id.toString()) {
+      return res.json({ available: false, message: '이미 사용 중인 닉네임입니다.' });
+    }
+    res.json({ available: true, message: '사용 가능한 닉네임입니다.' });
+  } catch (err) {
+    res.status(500).json({ message: '닉네임 확인 중 오류가 발생했습니다.' });
+  }
+};
+
+/**
  * GET /api/users/:id
- * 특정 사용자 공개 프로필 조회
+ * 특정 사용자 공개 프로필 조회 (학과명은 다른 유저에게 비노출)
  */
 exports.getUserProfile = async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select(
-      'name department mbti height gender bio interests foodPreferences diningStyle timetable isAnonymous profileImage createdAt'
+      'name nickname department mbti height gender bio interests foodPreferences diningStyle timetable isAnonymous profileImage createdAt'
     );
     if (!user) {
       return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
     }
-    // 익명 모드 처리
-    if (user.isAnonymous && req.user._id.toString() !== req.params.id) {
-      return res.json({
-        ...user.toObject(),
-        name: '익명',
-        profileImage: '',
-        department: user.department ? user.department.split('학과')[0] + '학과' : '',
-      });
+    const isMe = req.user._id.toString() === req.params.id;
+    const obj = user.toObject();
+
+    // 학과명은 다른 유저에게 비노출 (DB에는 저장)
+    if (!isMe) {
+      delete obj.department;
     }
-    res.json(user);
+
+    // 익명 모드 처리
+    if (user.isAnonymous && !isMe) {
+      obj.name = '익명';
+      obj.profileImage = '';
+    }
+
+    res.json(obj);
   } catch (err) {
     res.status(500).json({ message: '사용자 정보를 불러오는 중 오류가 발생했습니다.' });
   }

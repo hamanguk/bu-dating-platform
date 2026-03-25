@@ -22,7 +22,7 @@ exports.createOrGetRoom = async (req, res) => {
       const existing = await ChatRoom.findOne({
         type: 'direct',
         participants: { $all: [myId, targetUserId], $size: 2 },
-      }).populate('participants', 'name profileImage department');
+      }).populate('participants', 'name nickname profileImage department');
 
       if (existing) return res.json(existing);
 
@@ -30,7 +30,7 @@ exports.createOrGetRoom = async (req, res) => {
         type: 'direct',
         participants: [myId, targetUserId],
       });
-      await room.populate('participants', 'name profileImage department');
+      await room.populate('participants', 'name nickname profileImage department');
       return res.status(201).json(room);
     }
 
@@ -44,13 +44,13 @@ exports.createOrGetRoom = async (req, res) => {
 
       const existing = await ChatRoom.findOne({ type: 'group', post: postId }).populate(
         'participants',
-        'name profileImage department'
+        'name nickname profileImage department'
       );
       if (existing) {
         if (!existing.participants.some((p) => p._id.toString() === myId.toString())) {
           existing.participants.push(myId);
           await existing.save();
-          await existing.populate('participants', 'name profileImage department');
+          await existing.populate('participants', 'name nickname profileImage department');
         }
         return res.json(existing);
       }
@@ -61,7 +61,7 @@ exports.createOrGetRoom = async (req, res) => {
         participants: [myId],
         name: post.title,
       });
-      await room.populate('participants', 'name profileImage department');
+      await room.populate('participants', 'name nickname profileImage department');
       return res.status(201).json(room);
     }
 
@@ -84,7 +84,7 @@ exports.getMyRooms = async (req, res) => {
       isActive: true,
     })
       .sort({ 'lastMessage.timestamp': -1, updatedAt: -1 })
-      .populate('participants', 'name profileImage isAnonymous')
+      .populate('participants', 'name nickname profileImage isAnonymous')
       .populate('post', 'title type');
 
     // 방별 안 읽은 메시지 수 계산
@@ -163,7 +163,7 @@ exports.getMessages = async (req, res) => {
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(parseInt(limit))
-      .populate('sender', 'name profileImage');
+      .populate('sender', 'name nickname profileImage');
 
     res.json(messages.reverse());
   } catch (err) {
