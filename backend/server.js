@@ -75,7 +75,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/notifications', notificationRoutes);
 
 // Health check
-app.get('/health', (req, res) => res.json({ status: 'OK', timestamp: new Date() }));
+app.get('/api/health', (req, res) => res.json({ status: 'OK', timestamp: new Date() }));
 
 // 404 handler
 app.use((req, res) => {
