@@ -27,12 +27,13 @@ export default function CreatePostPage() {
     title: '',
     description: '',
     menuCategory: '',
+    mealTime: '',
     participantsCount: 2,
     genderPreference: '',
     isAnonymous: false,
   });
 
-  const isValid = form.title.trim().length >= 1 && form.description.trim().length >= 10 && form.menuCategory;
+  const isValid = form.title.trim().length >= 1 && form.description.trim().length >= 10 && form.menuCategory && form.mealTime;
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -72,6 +73,10 @@ export default function CreatePostPage() {
       setError('메뉴를 선택해주세요.');
       return;
     }
+    if (!form.mealTime) {
+      setError('식사 시간을 선택해주세요.');
+      return;
+    }
     setSubmitting(true);
     setError('');
     try {
@@ -80,6 +85,7 @@ export default function CreatePostPage() {
       formData.append('title', form.title.trim());
       formData.append('description', form.description.trim());
       formData.append('menuCategory', form.menuCategory);
+      formData.append('mealTime', form.mealTime);
       formData.append('participantsCount', form.participantsCount);
       formData.append('genderPreference', form.genderPreference || 'any');
       formData.append('isAnonymous', form.isAnonymous);
@@ -131,6 +137,7 @@ export default function CreatePostPage() {
               </p>
               <p className="text-primary/70 text-sm font-medium mt-1">
                 {form.type === 'meal' ? '밥 약속' : '술 한잔'} · {form.participantsCount}명
+                {form.mealTime && ` · ${{ breakfast: '아침', lunch: '점심', dinner: '저녁', late_night: '야식' }[form.mealTime]}`}
               </p>
             </div>
           </div>
@@ -174,6 +181,36 @@ export default function CreatePostPage() {
               >
                 <span className="text-xl">{icon}</span>
                 <span className="text-xs">{label}</span>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {/* 식사 시간 선택 (필수) */}
+        <section>
+          <h3 className="text-sm font-bold text-primary/80 uppercase tracking-wider mb-3">
+            식사 시간 <span className="text-primary">*</span>
+          </h3>
+          <div className="grid grid-cols-4 gap-2">
+            {[
+              { value: 'breakfast', label: '아침', icon: '🌅', time: '07-09시' },
+              { value: 'lunch', label: '점심', icon: '☀️', time: '11-14시' },
+              { value: 'dinner', label: '저녁', icon: '🌆', time: '17-19시' },
+              { value: 'late_night', label: '야식', icon: '🌙', time: '21시~' },
+            ].map(({ value, label, icon, time }) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setForm((p) => ({ ...p, mealTime: value }))}
+                className={`py-3 rounded-xl text-sm font-bold transition-all flex flex-col items-center gap-0.5 ${
+                  form.mealTime === value
+                    ? 'bg-primary text-white shadow-md scale-105'
+                    : 'bg-white dark:bg-[#2d1e14] text-gray-600 dark:text-gray-300 shadow-sm'
+                }`}
+              >
+                <span className="text-lg">{icon}</span>
+                <span className="text-xs">{label}</span>
+                <span className="text-[9px] opacity-70">{time}</span>
               </button>
             ))}
           </div>

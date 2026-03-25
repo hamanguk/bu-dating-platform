@@ -7,6 +7,10 @@ const MENU_ICONS = {
   cafe: '☕', chicken: '🍗', pizza: '🍕', snack: '🍜', other: '🍽️',
 };
 
+const MEAL_TIME_LABEL = {
+  breakfast: '아침', lunch: '점심', dinner: '저녁', late_night: '야식',
+};
+
 const MENU_BG = {
   korean: 'from-orange-100 to-amber-50',
   chinese: 'from-red-100 to-orange-50',
@@ -117,7 +121,7 @@ export default function PostCard({ post }) {
             {post.isAnonymous ? '익명' : post.author?.name} · {post.author?.department || ''}
           </p>
           <div className="flex items-center justify-between mt-1.5 text-[10px] text-gray-400">
-            <span>{new Date(post.createdAt).toLocaleDateString('ko-KR')}</span>
+            <span>{MEAL_TIME_LABEL[post.mealTime] || ''} · {new Date(post.createdAt).toLocaleDateString('ko-KR')}</span>
             {likeCount > 0 && (
               <span className="flex items-center gap-0.5">
                 <span className="material-symbols-outlined text-[11px]">favorite</span>

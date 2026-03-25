@@ -83,10 +83,16 @@ exports.getPost = async (req, res) => {
  */
 exports.createPost = async (req, res) => {
   try {
-    const { type, title, description, menuCategory, participantsCount, genderPreference, isAnonymous } = req.body;
+    const { type, title, description, menuCategory, mealTime, participantsCount, genderPreference, isAnonymous } = req.body;
 
     if (!type || !title) {
       return res.status(400).json({ message: '타입과 제목은 필수입니다.' });
+    }
+    if (!menuCategory) {
+      return res.status(400).json({ message: '메뉴 카테고리는 필수입니다.' });
+    }
+    if (!mealTime) {
+      return res.status(400).json({ message: '식사 시간은 필수입니다.' });
     }
 
     const images = req.files?.map((f) => f.path).filter(Boolean) || [];
@@ -96,7 +102,8 @@ exports.createPost = async (req, res) => {
       type,
       title: title.trim(),
       description: description?.trim() || '',
-      menuCategory: menuCategory || 'other',
+      menuCategory,
+      mealTime,
       participantsCount: parseInt(participantsCount) || 2,
       genderPreference: genderPreference || 'any',
       images,
@@ -127,11 +134,12 @@ exports.updatePost = async (req, res) => {
       return res.status(403).json({ message: '수정 권한이 없습니다.' });
     }
 
-    const { title, description, menuCategory, participantsCount, genderPreference, isAnonymous } = req.body;
+    const { title, description, menuCategory, mealTime, participantsCount, genderPreference, isAnonymous } = req.body;
 
     if (title !== undefined) post.title = title.trim();
     if (description !== undefined) post.description = description.trim();
     if (menuCategory !== undefined) post.menuCategory = menuCategory;
+    if (mealTime !== undefined) post.mealTime = mealTime;
     if (participantsCount !== undefined) post.participantsCount = parseInt(participantsCount) || 2;
     if (genderPreference !== undefined) post.genderPreference = genderPreference;
     if (isAnonymous !== undefined) post.isAnonymous = isAnonymous === 'true' || isAnonymous === true;
