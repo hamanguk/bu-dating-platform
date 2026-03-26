@@ -1,7 +1,7 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { updateProfile, uploadProfileImage, checkNickname } from '../services/api';
+import { updateProfile, checkNickname } from '../services/api';
 import TimetableSelector from '../components/TimetableSelector';
 
 const MBTI_LIST = ['INTJ','INTP','ENTJ','ENTP','INFJ','INFP','ENFJ','ENFP',
@@ -25,7 +25,6 @@ const defaultTimetable = () => Array.from({ length: 5 }, () => Array(9).fill(fal
 export default function ProfilePage() {
   const { user, setUser, logout } = useAuth();
   const navigate = useNavigate();
-  const fileRef = useRef(null);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
@@ -114,23 +113,6 @@ export default function ProfilePage() {
     }
   };
 
-  const handleImageUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const formData = new FormData();
-    formData.append('image', file);
-    try {
-      const { data } = await uploadProfileImage(formData);
-      setUser((prev) => ({ ...prev, profileImage: data.imageUrl }));
-    } catch {
-      setError('이미지 업로드에 실패했습니다.');
-    }
-  };
-
-  const profileImageSrc = user?.profileImage
-    ? user.profileImage.startsWith('/uploads') ? `http://localhost:5000${user.profileImage}` : user.profileImage
-    : null;
-
   return (
     <div className="flex flex-col bg-background-light dark:bg-background-dark min-h-screen pb-10">
       {/* 헤더 */}
@@ -141,24 +123,10 @@ export default function ProfilePage() {
         </button>
       </div>
 
-      {/* 프로필 이미지 */}
-      <div className="flex flex-col items-center gap-4 py-6">
-        <div className="relative">
-          <div
-            className="w-32 h-32 rounded-3xl bg-cover bg-center bg-primary/10 border-4 border-white dark:border-gray-800 shadow-xl flex items-center justify-center"
-            style={profileImageSrc ? { backgroundImage: `url(${profileImageSrc})` } : {}}
-          >
-            {!profileImageSrc && (
-              <span className="material-symbols-outlined text-primary text-4xl">person</span>
-            )}
-          </div>
-          <button
-            onClick={() => fileRef.current?.click()}
-            className="absolute bottom-1 right-1 bg-gradient-to-r from-primary to-accent text-white p-2 rounded-xl border-2 border-white dark:border-gray-800 shadow-md"
-          >
-            <span className="material-symbols-outlined text-[16px]">edit</span>
-          </button>
-          <input ref={fileRef} type="file" accept=".jpg,.jpeg,.png" className="hidden" onChange={handleImageUpload} />
+      {/* 프로필 헤더 (닉네임 + 뱃지) */}
+      <div className="flex flex-col items-center gap-3 py-6">
+        <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-primary/20 to-accent/20 border-4 border-white dark:border-gray-800 shadow-xl flex items-center justify-center">
+          <span className="material-symbols-outlined text-primary text-3xl">person</span>
         </div>
         <div className="text-center">
           <div className="flex items-center justify-center gap-1.5">

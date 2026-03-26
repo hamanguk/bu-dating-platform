@@ -196,15 +196,8 @@ export default function PostDetailPage() {
         {/* 작성자 정보 */}
         {post.author && (
           <div className="bg-white dark:bg-[#2d1e14] rounded-2xl p-5 flex items-center gap-4 border border-gray-100 dark:border-white/5">
-            <div
-              className="w-12 h-12 rounded-full bg-primary/10 bg-cover bg-center"
-              style={post.author.profileImage ? { backgroundImage: `url(${imageUrl(post.author.profileImage)})` } : {}}
-            >
-              {!post.author.profileImage && (
-                <div className="w-full h-full flex items-center justify-center">
-                  <span className="material-symbols-outlined text-primary">person</span>
-                </div>
-              )}
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center flex-shrink-0">
+              <span className="material-symbols-outlined text-primary">person</span>
             </div>
             <div>
               <div className="flex items-center gap-1.5">

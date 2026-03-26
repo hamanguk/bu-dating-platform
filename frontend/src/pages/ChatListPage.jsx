@@ -28,17 +28,6 @@ export default function ChatListPage() {
     return '그룹 채팅';
   };
 
-  const getRoomImage = (room) => {
-    if (room.type === 'direct') {
-      const other = room.participants?.find((p) => p._id !== myId);
-      return other?.profileImage;
-    }
-    return null;
-  };
-
-  const imgUrl = (src) =>
-    src?.startsWith('/uploads') ? `http://localhost:5000${src}` : src;
-
   return (
     <PageTransition>
       <div className="flex flex-col bg-background-light dark:bg-background-dark min-h-screen">
@@ -62,7 +51,6 @@ export default function ChatListPage() {
         ) : (
           <div className="divide-y divide-gray-100 dark:divide-white/5">
             {rooms.map((room) => {
-              const roomImg = getRoomImage(room);
               const lastMsg = room.lastMessage;
               const unread = room.unreadCount || 0;
               return (
@@ -71,15 +59,10 @@ export default function ChatListPage() {
                   onClick={() => navigate(`/chat/${room._id}`)}
                   className="w-full flex items-center gap-4 px-6 py-5 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
                 >
-                  <div
-                    className="w-14 h-14 rounded-2xl bg-primary/10 bg-cover bg-center flex-shrink-0 flex items-center justify-center"
-                    style={roomImg ? { backgroundImage: `url(${imgUrl(roomImg)})` } : {}}
-                  >
-                    {!roomImg && (
-                      <span className="material-symbols-outlined text-primary">
-                        {room.type === 'group' ? 'group' : 'person'}
-                      </span>
-                    )}
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 flex-shrink-0 flex items-center justify-center">
+                    <span className="material-symbols-outlined text-primary">
+                      {room.type === 'group' ? 'group' : 'person'}
+                    </span>
                   </div>
                   <div className="flex-1 text-left min-w-0">
                     <div className="flex items-center justify-between">

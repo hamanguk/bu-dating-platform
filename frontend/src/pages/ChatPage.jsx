@@ -95,8 +95,6 @@ export default function ChatPage() {
     }, 1500);
   };
 
-  const imgUrl = (src) =>
-    src?.startsWith('/uploads') ? `http://localhost:5000${src}` : src;
 
   const formatTime = (ts) =>
     new Date(ts).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
@@ -120,14 +118,9 @@ export default function ChatPage() {
           return (
             <div key={msg._id} className={`flex ${isMe ? 'justify-end' : 'items-start gap-2'} max-w-[85%] ${isMe ? 'ml-auto' : ''}`}>
               {!isMe && (
-                <div
-                  className="size-8 rounded-full bg-primary/10 bg-cover bg-center flex-shrink-0 mt-1"
-                  style={
-                    msg.sender?.profileImage
-                      ? { backgroundImage: `url(${imgUrl(msg.sender.profileImage)})` }
-                      : {}
-                  }
-                />
+                <div className="size-8 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex-shrink-0 mt-1 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-primary text-[14px]">person</span>
+                </div>
               )}
               <div className={`flex flex-col ${isMe ? 'items-end' : ''}`}>
                 {!isMe && (

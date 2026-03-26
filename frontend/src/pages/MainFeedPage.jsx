@@ -166,15 +166,8 @@ export default function MainFeedPage() {
                   onClick={() => navigate(`/users/${u._id}`)}
                   className="flex-shrink-0 w-[140px] bg-white dark:bg-[#2d1e14] rounded-2xl p-3 shadow-card border border-gray-100/60 dark:border-white/5 hover:shadow-card-hover transition-all"
                 >
-                  <div
-                    className="w-12 h-12 rounded-xl bg-primary/10 bg-cover bg-center mx-auto mb-2"
-                    style={u.profileImage ? { backgroundImage: `url(${u.profileImage})` } : {}}
-                  >
-                    {!u.profileImage && (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <span className="material-symbols-outlined text-primary text-xl">person</span>
-                      </div>
-                    )}
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 mx-auto mb-2 flex items-center justify-center">
+                    <span className="material-symbols-outlined text-primary text-xl">person</span>
                   </div>
                   <p className="text-xs font-bold dark:text-white truncate text-center">{u.nickname || '익명'}</p>
                   <p className="text-[10px] text-gray-400 truncate text-center">
