@@ -10,6 +10,24 @@ const MENU_ICONS = {
   cafe: '☕', chicken: '🍗', pizza: '🍕', snack: '🍜', other: '🍽️',
 };
 
+const MENU_BG = {
+  korean: 'from-orange-100 to-amber-50',
+  chinese: 'from-red-100 to-orange-50',
+  japanese: 'from-rose-100 to-pink-50',
+  western: 'from-yellow-100 to-amber-50',
+  cafe: 'from-amber-100 to-yellow-50',
+  chicken: 'from-orange-100 to-red-50',
+  pizza: 'from-red-100 to-yellow-50',
+  snack: 'from-pink-100 to-orange-50',
+  beer: 'from-amber-100 to-yellow-50',
+  soju: 'from-emerald-100 to-green-50',
+  other: 'from-gray-100 to-gray-50',
+};
+
+const MEAL_TIME_LABEL = {
+  breakfast: '아침', lunch: '점심', dinner: '저녁', late_night: '야식',
+};
+
 export default function PostDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -83,7 +101,9 @@ export default function PostDetailPage() {
   const isOwner = post.isOwner || post.author?._id === myId;
   const imageUrl = (src) =>
     src?.startsWith('/uploads') ? `http://localhost:5000${src}` : src;
-  const menuIcon = MENU_ICONS[post.menuCategory] || '🍽️';
+  const categories = Array.isArray(post.menuCategory) ? post.menuCategory : [post.menuCategory];
+  const menuIcon = categories.map((c) => MENU_ICONS[c] || '🍽️').join(' ');
+  const bgGradient = MENU_BG[categories[0]] || MENU_BG.other;
 
   return (
     <PageTransition>
@@ -118,8 +138,8 @@ export default function PostDetailPage() {
         </div>
       </div>
 
-      {/* 이미지 슬라이더 */}
-      {post.images?.length > 0 && (
+      {/* 이미지 슬라이더 또는 기본 그라데이션 */}
+      {post.images?.length > 0 ? (
         <div className="relative aspect-[4/5] w-full bg-gray-100">
           <img
             src={imageUrl(post.images[imgIdx])}
@@ -139,7 +159,16 @@ export default function PostDetailPage() {
           )}
           <div className="absolute top-4 left-4 flex gap-2">
             <span className="bg-primary px-3 py-1 rounded-full text-[10px] font-bold text-white">
-              {menuIcon} {post.type === 'meal' ? '밥 약속' : '술 한잔'} · {post.participantsCount}명
+              {menuIcon} 밥 약속 · {post.participantsCount}명
+            </span>
+          </div>
+        </div>
+      ) : (
+        <div className={`relative aspect-[2/1] w-full bg-gradient-to-br ${bgGradient} dark:from-white/5 dark:to-white/10 flex items-center justify-center`}>
+          <span className="text-7xl">{menuIcon}</span>
+          <div className="absolute top-4 left-4 flex gap-2">
+            <span className="bg-primary/80 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] font-bold text-white">
+              {MEAL_TIME_LABEL[post.mealTime] || '밥약속'} · {post.participantsCount}명
             </span>
           </div>
         </div>

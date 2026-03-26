@@ -2,6 +2,20 @@ import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPost } from '../services/api';
 
+const MEAL_GRADIENTS = {
+  breakfast: 'from-amber-100 to-yellow-50',
+  lunch: 'from-orange-100 to-amber-50',
+  dinner: 'from-rose-100 to-pink-50',
+  late_night: 'from-indigo-100 to-purple-50',
+};
+
+const MEAL_ICONS = {
+  breakfast: '🌅',
+  lunch: '☀️',
+  dinner: '🌆',
+  late_night: '🌙',
+};
+
 const MENU_OPTIONS = [
   { value: 'korean', label: '한식', icon: '🍚' },
   { value: 'chinese', label: '중식', icon: '🥟' },
@@ -125,6 +139,16 @@ export default function CreatePostPage() {
         {/* 미리보기 */}
         {form.title && (
           <div className="rounded-xl shadow-lg bg-white dark:bg-[#2d1e14] overflow-hidden border border-black/5">
+            {previews.length > 0 ? (
+              <div
+                className="h-40 bg-center bg-cover"
+                style={{ backgroundImage: `linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,0.5) 100%), url(${previews[0]})` }}
+              />
+            ) : (
+              <div className={`h-40 bg-gradient-to-br ${MEAL_GRADIENTS[form.mealTime] || 'from-orange-100 to-amber-50'} dark:from-white/5 dark:to-white/10 flex items-center justify-center`}>
+                <span className="text-5xl">{selectedMenuIcons || MEAL_ICONS[form.mealTime] || '🍽️'}</span>
+              </div>
+            )}
             <div className="p-4">
               <div className="flex items-center gap-2 mb-1">
                 <span className="size-2 rounded-full bg-green-500 animate-pulse" />
@@ -219,7 +243,8 @@ export default function CreatePostPage() {
 
         {/* 사진 업로드 */}
         <section>
-          <h3 className="text-sm font-bold text-primary/80 uppercase tracking-wider mb-3">사진 추가 (최대 5장)</h3>
+          <h3 className="text-sm font-bold text-primary/80 uppercase tracking-wider mb-1">사진 추가 <span className="text-gray-400 font-medium">(선택)</span></h3>
+          <p className="text-[11px] text-gray-400 mb-3">사진이 없으면 메뉴에 맞는 기본 배경이 표시됩니다</p>
           <div className="flex gap-2 flex-wrap">
             {previews.map((src, idx) => (
               <div key={idx} className="relative w-20 h-20">

@@ -210,7 +210,8 @@ export default function EditPostPage() {
 
         {/* 사진 */}
         <section>
-          <h3 className="text-sm font-bold text-primary/80 uppercase tracking-wider mb-3">사진 (최대 5장)</h3>
+          <h3 className="text-sm font-bold text-primary/80 uppercase tracking-wider mb-1">사진 <span className="text-gray-400 font-medium">(선택)</span></h3>
+          <p className="text-[11px] text-gray-400 mb-3">사진이 없으면 메뉴에 맞는 기본 배경이 표시됩니다</p>
           <div className="flex gap-2 flex-wrap">
             {existingImages.map((src, idx) => (
               <div key={`existing-${idx}`} className="relative w-20 h-20">
