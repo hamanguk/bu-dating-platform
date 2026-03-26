@@ -34,7 +34,7 @@ export default function ProfilePage() {
   const [form, setForm] = useState({
     nickname: user?.nickname || '',
     mbti: user?.mbti || '',
-    height: user?.height || '',
+
     gender: user?.gender || '',
     bio: user?.bio || '',
     foodPreferences: user?.foodPreferences || [],
@@ -99,7 +99,6 @@ export default function ProfilePage() {
     try {
       const payload = {
         ...form,
-        height: form.height ? parseInt(form.height) : undefined,
       };
       const { data } = await updateProfile(payload);
       setUser(data.user);
@@ -274,19 +273,6 @@ export default function ProfilePage() {
           <TimetableSelector
             timetable={form.timetable}
             onChange={(t) => setForm((prev) => ({ ...prev, timetable: t }))}
-          />
-        </div>
-
-        <div className="space-y-1">
-          <label className="text-xs font-bold text-primary/80 uppercase tracking-wider">키 (cm)</label>
-          <input
-            name="height"
-            type="number"
-            value={form.height}
-            onChange={handleChange}
-            placeholder="예: 175"
-            min="140" max="220"
-            className="w-full bg-white dark:bg-[#2d1e14] border-none rounded-2xl h-13 px-5 text-sm font-medium focus:ring-2 focus:ring-primary shadow-sm dark:text-white"
           />
         </div>
 

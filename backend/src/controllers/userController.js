@@ -24,14 +24,13 @@ const generateRandomNickname = () => {
  */
 exports.updateProfile = async (req, res) => {
   try {
-    const { department, studentId, mbti, height, gender, bio, interests,
+    const { department, studentId, mbti, gender, bio, interests,
             foodPreferences, diningStyle, timetable, isAnonymous, nickname } = req.body;
 
     const updateData = {};
     if (department !== undefined) updateData.department = department.trim();
     if (studentId !== undefined) updateData.studentId = studentId.trim();
     if (mbti !== undefined) updateData.mbti = mbti;
-    if (height !== undefined) updateData.height = parseInt(height);
     if (gender !== undefined) updateData.gender = gender;
     if (bio !== undefined) updateData.bio = bio.slice(0, 300);
     if (interests !== undefined) updateData.interests = Array.isArray(interests) ? interests.slice(0, 10) : [];
@@ -134,7 +133,7 @@ exports.getUserProfile = async (req, res) => {
 
     // 본인이면 전체 정보, 타인이면 닉네임/MBTI/성별만
     const selectFields = isMe
-      ? 'nickname department mbti height gender bio interests foodPreferences diningStyle timetable profileImage createdAt'
+      ? 'nickname department mbti gender bio interests foodPreferences diningStyle timetable profileImage createdAt'
       : 'nickname mbti gender bio foodPreferences diningStyle profileImage createdAt';
 
     const user = await User.findById(req.params.id).select(selectFields);
