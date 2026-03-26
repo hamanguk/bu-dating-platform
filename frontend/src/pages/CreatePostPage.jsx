@@ -108,7 +108,7 @@ export default function CreatePostPage() {
     } catch (err) {
       const msg = err.response?.data?.message || err.message || '게시물 작성 중 오류가 발생했습니다.';
       if (err.response?.data?.code === 'PROFILE_INCOMPLETE') {
-        setError('프로필을 먼저 완성해주세요. 프로필 페이지에서 학과를 입력하고 저장하세요.');
+        setError('프로필을 먼저 완성해주세요. 프로필 페이지에서 공강 시간표를 설정하고 저장하세요.');
       } else {
         setError(`오류: ${msg}`);
       }

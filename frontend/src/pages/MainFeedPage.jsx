@@ -127,7 +127,7 @@ export default function MainFeedPage() {
             className="w-full h-14 rounded-2xl bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold text-lg flex items-center justify-center gap-2 shadow-md active:scale-[0.97] transition-transform duration-150"
           >
             <span className="material-symbols-outlined text-[22px]">edit_square</span>
-            밥약속 제안하기
+            오늘 밥 약속 제안하기
           </button>
         </div>
 

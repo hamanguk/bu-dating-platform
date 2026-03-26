@@ -65,89 +65,111 @@ export default function PostCard({ post }) {
       }`}>
         {/* 이미지 / 메뉴 아이콘 폴백 */}
         {coverImage ? (
-          <div
-            className="relative aspect-square w-full bg-center bg-cover"
-            style={{
-              backgroundImage: `linear-gradient(180deg, rgba(0,0,0,0) 50%, rgba(0,0,0,0.6) 100%), url(${coverImage})`,
-            }}
-          >
-            {/* 타입 뱃지 */}
-            <div className="absolute top-2 left-2">
-              <span className="bg-black/40 backdrop-blur-sm px-2 py-0.5 rounded-full text-[9px] font-bold text-white">
-                {menuIcon}
-              </span>
-            </div>
-            {/* 하트 */}
-            <button
-              onClick={handleLike}
-              className="absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-full bg-black/30 backdrop-blur-sm"
+          <>
+            {/* 사진 있는 카드 */}
+            <div
+              className="relative aspect-[4/3] w-full bg-center bg-cover"
+              style={{
+                backgroundImage: `linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,0.6) 100%), url(${coverImage})`,
+              }}
             >
-              <span
-                className={`material-symbols-outlined text-[16px] ${isLiked ? 'text-red-400' : 'text-white/80'}`}
-                style={isLiked ? { fontVariationSettings: "'FILL' 1" } : {}}
-              >
-                favorite
-              </span>
-            </button>
-            {/* 인원 뱃지 */}
-            {post.participantsCount > 2 && (
-              <div className="absolute bottom-2 right-2">
-                <span className="bg-black/40 backdrop-blur-sm px-1.5 py-0.5 rounded-full text-[9px] font-bold text-white">
-                  {post.participantsCount}명
+              <div className="absolute top-2 left-2">
+                <span className="bg-black/40 backdrop-blur-sm px-2 py-0.5 rounded-full text-[9px] font-bold text-white">
+                  {menuIcon}
                 </span>
               </div>
-            )}
-          </div>
+              <button
+                onClick={handleLike}
+                className="absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-full bg-black/30 backdrop-blur-sm"
+              >
+                <span
+                  className={`material-symbols-outlined text-[16px] ${isLiked ? 'text-red-400' : 'text-white/80'}`}
+                  style={isLiked ? { fontVariationSettings: "'FILL' 1" } : {}}
+                >
+                  favorite
+                </span>
+              </button>
+              {post.participantsCount > 2 && (
+                <div className="absolute bottom-2 right-2">
+                  <span className="bg-black/40 backdrop-blur-sm px-1.5 py-0.5 rounded-full text-[9px] font-bold text-white">
+                    {post.participantsCount}명
+                  </span>
+                </div>
+              )}
+            </div>
+            <div className="p-2.5">
+              <h3 className="text-sm font-bold dark:text-white truncate leading-tight">{post.title}</h3>
+              <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5 truncate flex items-center gap-1">
+                <span>{post.author?.nickname || '익명'}</span>
+                {post.author?.mbti && <span className="text-[9px] text-primary/60">{post.author.mbti}</span>}
+                <span className="inline-flex items-center gap-0.5 px-1.5 py-px bg-blue-100 dark:bg-blue-900/30 text-blue-500 text-[8px] font-bold rounded-full flex-shrink-0">
+                  <span className="material-symbols-outlined text-[9px]">verified</span>
+                  인증
+                </span>
+              </p>
+              <div className="flex items-center justify-between mt-1.5 text-[10px] text-gray-400">
+                <span>{MEAL_TIME_LABEL[post.mealTime] || ''} · {new Date(post.createdAt).toLocaleDateString('ko-KR')}</span>
+                {likeCount > 0 && (
+                  <span className="flex items-center gap-0.5">
+                    <span className="material-symbols-outlined text-[11px]">favorite</span>
+                    {likeCount}
+                  </span>
+                )}
+              </div>
+            </div>
+          </>
         ) : (
-          <div className={`relative aspect-square w-full bg-gradient-to-br ${bgGradient} dark:from-white/5 dark:to-white/10 flex items-center justify-center`}>
-            <span className="text-5xl">{menuIcon}</span>
-            <div className="absolute top-2 left-2">
-              <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${showNeon ? 'bg-purple-500/20 text-purple-600' : 'bg-primary/20 text-primary'}`}>
-                {MEAL_TIME_LABEL[post.mealTime] || '밥약속'}
-              </span>
-            </div>
-            <button
-              onClick={handleLike}
-              className="absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-full bg-white/60 dark:bg-black/30"
-            >
-              <span
-                className={`material-symbols-outlined text-[16px] ${isLiked ? 'text-red-500' : 'text-gray-400'}`}
-                style={isLiked ? { fontVariationSettings: "'FILL' 1" } : {}}
-              >
-                favorite
-              </span>
-            </button>
-            {post.participantsCount > 2 && (
-              <div className="absolute bottom-2 right-2">
-                <span className="bg-primary/20 px-1.5 py-0.5 rounded-full text-[9px] font-bold text-primary">
-                  {post.participantsCount}명
+          <>
+            {/* 사진 없는 카드 — 전체 그라데이션 + 제목/설명 중심 */}
+            <div className={`relative p-4 min-h-[180px] bg-gradient-to-br ${showNeon ? 'from-purple-100 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20' : 'from-orange-50 to-pink-50 dark:from-white/5 dark:to-white/10'} flex flex-col justify-between`}>
+              <div className="flex items-center justify-between">
+                <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${showNeon ? 'bg-purple-500/20 text-purple-600' : 'bg-primary/20 text-primary'}`}>
+                  {MEAL_TIME_LABEL[post.mealTime] || '밥약속'} · {post.participantsCount}명
                 </span>
+                <button
+                  onClick={handleLike}
+                  className="w-7 h-7 flex items-center justify-center rounded-full bg-white/60 dark:bg-black/20"
+                >
+                  <span
+                    className={`material-symbols-outlined text-[16px] ${isLiked ? 'text-red-500' : 'text-gray-400'}`}
+                    style={isLiked ? { fontVariationSettings: "'FILL' 1" } : {}}
+                  >
+                    favorite
+                  </span>
+                </button>
               </div>
-            )}
-          </div>
+              <div className="flex-1 flex flex-col justify-center py-2">
+                <p className="text-lg font-extrabold text-gray-800 dark:text-white leading-snug">
+                  {menuIcon} {post.title}
+                </p>
+                {post.description && (
+                  <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1.5 line-clamp-2 leading-relaxed">
+                    {post.description}
+                  </p>
+                )}
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="text-[11px] text-gray-500 dark:text-gray-400 truncate">
+                  {post.author?.nickname || '익명'}
+                </span>
+                {post.author?.mbti && <span className="text-[9px] text-primary/60">{post.author.mbti}</span>}
+                <span className="inline-flex items-center gap-0.5 px-1.5 py-px bg-blue-100 dark:bg-blue-900/30 text-blue-500 text-[8px] font-bold rounded-full flex-shrink-0">
+                  <span className="material-symbols-outlined text-[9px]">verified</span>
+                  인증
+                </span>
+                <span className="ml-auto text-[10px] text-gray-400">
+                  {new Date(post.createdAt).toLocaleDateString('ko-KR')}
+                </span>
+                {likeCount > 0 && (
+                  <span className="flex items-center gap-0.5 text-[10px] text-gray-400">
+                    <span className="material-symbols-outlined text-[11px]">favorite</span>
+                    {likeCount}
+                  </span>
+                )}
+              </div>
+            </div>
+          </>
         )}
-
-        {/* 텍스트 */}
-        <div className="p-2.5">
-          <h3 className="text-sm font-bold dark:text-white truncate leading-tight">{post.title}</h3>
-          <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5 truncate flex items-center gap-1">
-            <span>{post.author?.nickname || '익명'}</span>
-            {post.author?.mbti && <span className="text-[9px] text-primary/60">{post.author.mbti}</span>}
-            <span className="inline-flex items-center gap-0.5 px-1.5 py-px bg-blue-100 dark:bg-blue-900/30 text-blue-500 text-[8px] font-bold rounded-full flex-shrink-0">
-              <span className="material-symbols-outlined text-[9px]">verified</span>
-              인증
-            </span>
-          </p>
-          <div className="flex items-center justify-between mt-1.5 text-[10px] text-gray-400">
-            <span>{MEAL_TIME_LABEL[post.mealTime] || ''} · {new Date(post.createdAt).toLocaleDateString('ko-KR')}</span>
-            {likeCount > 0 && (
-              <span className="flex items-center gap-0.5">
-                <span className="material-symbols-outlined text-[11px]">favorite</span>
-                {likeCount}
-              </span>
-            )}
-          </div>
-        </div>
       </div>
     </Link>
   );
