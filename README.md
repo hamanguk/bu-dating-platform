@@ -29,7 +29,7 @@
 - **밥약속 게시판** — 메뉴 카테고리(복수 선택) + 식사 시간(아침/점심/저녁/야식), 사진은 선택 사항
 - **사진 없는 게시물 UI** — 메뉴별 그라데이션 배경 + 이모지로 예쁜 카드 자동 생성
 - **저녁+술 네온 테마** — 저녁/야식 + 맥주/소주 조합 시 보라색 글로우 효과 자동 적용
-- **실시간 채팅** — Socket.io 기반 1:1/그룹 채팅 + 읽음 표시
+- **실시간 채팅** — Socket.io 기반 1:1/그룹 채팅 + 읽음 표시 + 채팅방 나가기(시스템 메시지)
 - **학교 이메일 인증** — `@bu.ac.kr` 도메인만 허용하는 Google OAuth 로그인
 - **인앱 브라우저 대응** — 카카오톡/인스타/에타 등 앱별 분기 처리 (카톡 iOS는 소프트 팁, 나머지는 모달)
 - **푸시 알림** — FCM + Browser Notification API로 새 메시지 알림
@@ -95,8 +95,8 @@ campus-date/
 │   │   │   ├── MainFeedPage.jsx # 메인 피드 (2열 그리드 + 공강 매칭)
 │   │   │   ├── CreatePostPage.jsx # 밥약속 작성 (사진 선택, 미리보기)
 │   │   │   ├── PostDetailPage.jsx # 게시물 상세 (이미지/그라데이션 폴백)
-│   │   │   ├── ChatListPage.jsx # 채팅 목록
-│   │   │   ├── ChatPage.jsx     # 채팅방
+│   │   │   ├── ChatListPage.jsx # 채팅 목록 (실시간 업데이트)
+│   │   │   ├── ChatPage.jsx     # 채팅방 (나가기 메뉴 + 확인 모달)
 │   │   │   ├── ProfilePage.jsx  # 프로필 (닉네임 + MBTI + 성별 + 시간표)
 │   │   │   └── AdminPage.jsx    # 관리자 대시보드
 │   │   └── services/
@@ -121,7 +121,7 @@ campus-date/
 │   │   │   ├── authController.js    # 구글 로그인 + 닉네임 포함 응답
 │   │   │   ├── postController.js    # 닉네임+MBTI+성별만 populate
 │   │   │   ├── userController.js    # 랜덤 닉네임 생성 + 중복 확인
-│   │   │   ├── chatController.js
+│   │   │   ├── chatController.js    # 채팅방 CRUD + 나가기 (시스템 메시지 + 소켓 브로드캐스트)
 │   │   │   ├── matchController.js   # KST 기반 공강 매칭 알고리즘
 │   │   │   └── adminController.js
 │   │   ├── routes/
@@ -173,10 +173,12 @@ campus-date/
 
 ```javascript
 // Room (채팅방)
-{ type: 'direct' | 'group', participants: [User], relatedPost: Post }
+{ type: 'direct' | 'group', participants: [User], relatedPost: Post, isActive: Boolean,
+  lastMessage: { content, sender, timestamp } }
 
 // Message (메시지)
 { room: Room, sender: User, content: String, readBy: [User] }
+// 나가기 시 "닉네임님이 퇴장하셨습니다." 시스템 메시지 자동 생성
 ```
 
 ---
@@ -333,6 +335,7 @@ MBTI                   학과
 | POST | `/api/chat/rooms` | 채팅방 생성/조회 |
 | GET | `/api/chat/rooms` | 내 채팅방 목록 |
 | GET | `/api/chat/rooms/:id/messages` | 메시지 조회 |
+| POST | `/api/chat/rooms/:id/leave` | 채팅방 나가기 (시스템 메시지 + 실시간 알림) |
 | GET | `/api/chat/unread-count` | 총 미읽 메시지 수 |
 
 ### 사용자
