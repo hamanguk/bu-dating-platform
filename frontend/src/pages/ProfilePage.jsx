@@ -85,6 +85,10 @@ export default function ProfilePage() {
   const hasFreePeriod = form.timetable.some((day) => day.some(Boolean));
 
   const handleSave = async () => {
+    if (!form.nickname.trim()) {
+      setError('별명(닉네임)은 필수입니다. 나를 표현할 별명을 입력해주세요!');
+      return;
+    }
     if (!hasFreePeriod) {
       setError('공강 시간을 최소 1개 이상 선택해주세요.');
       return;
@@ -99,11 +103,11 @@ export default function ProfilePage() {
       };
       const { data } = await updateProfile(payload);
       setUser(data.user);
-      if (data.user?.profileComplete) {
+      if (data.user?.profileComplete && data.user?.nickname) {
         setSuccess('프로필 완성! 메인 페이지로 이동합니다.');
         setTimeout(() => navigate('/', { replace: true }), 500);
       } else {
-        setSuccess('저장되었습니다. 공강 시간 선택을 완료해주세요!');
+        setSuccess('저장되었습니다. 필수 항목을 완료해주세요!');
         setTimeout(() => setSuccess(''), 4000);
       }
     } catch (err) {

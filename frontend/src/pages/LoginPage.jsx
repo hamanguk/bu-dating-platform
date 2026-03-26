@@ -47,7 +47,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!loading && user) {
-      if (user.profileComplete) {
+      if (user.profileComplete && user.nickname) {
         navigate('/', { replace: true });
       } else {
         navigate('/profile', { replace: true });
@@ -60,7 +60,7 @@ export default function LoginPage() {
     setLoginLoading(true);
     try {
       const loggedUser = await login();
-      if (loggedUser.profileComplete) {
+      if (loggedUser.profileComplete && loggedUser.nickname) {
         navigate('/', { replace: true });
       } else {
         navigate('/profile', { replace: true });
