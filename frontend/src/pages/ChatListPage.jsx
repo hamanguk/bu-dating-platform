@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getMyRooms } from '../services/api';
+import { getSocket } from '../services/socket';
 import { useAuth } from '../contexts/AuthContext';
 import { ChatRoomSkeleton } from '../components/Skeleton';
 import EmptyState from '../components/EmptyState';
@@ -17,6 +18,26 @@ export default function ChatListPage() {
     getMyRooms()
       .then(({ data }) => setRooms(data))
       .finally(() => setLoading(false));
+  }, []);
+
+  // 실시간 업데이트: 방 나가기 시 목록에서 제거 + lastMessage 업데이트
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return;
+
+    const handleRoomUpdated = ({ roomId, lastMessage }) => {
+      setRooms((prev) =>
+        prev.map((r) =>
+          r._id === roomId ? { ...r, lastMessage } : r
+        )
+      );
+    };
+
+    socket.on('room_updated', handleRoomUpdated);
+
+    return () => {
+      socket.off('room_updated', handleRoomUpdated);
+    };
   }, []);
 
   const getRoomName = (room) => {

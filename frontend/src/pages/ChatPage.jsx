@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getMessages } from '../services/api';
+import { getMessages, leaveRoom } from '../services/api';
 import { getSocket } from '../services/socket';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -12,6 +12,9 @@ export default function ChatPage() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [typingUser, setTypingUser] = useState(null);
+  const [showMenu, setShowMenu] = useState(false);
+  const [showLeaveModal, setShowLeaveModal] = useState(false);
+  const [leaving, setLeaving] = useState(false);
   const bottomRef = useRef(null);
   const typingTimer = useRef(null);
 
@@ -96,6 +99,19 @@ export default function ChatPage() {
   };
 
 
+  const handleLeaveRoom = async () => {
+    setLeaving(true);
+    try {
+      await leaveRoom(roomId);
+      navigate('/chat', { replace: true });
+    } catch {
+      alert('채팅방 나가기에 실패했습니다.');
+    } finally {
+      setLeaving(false);
+      setShowLeaveModal(false);
+    }
+  };
+
   const formatTime = (ts) =>
     new Date(ts).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
 
@@ -109,7 +125,53 @@ export default function ChatPage() {
           </button>
           <p className="font-bold text-base dark:text-white">채팅</p>
         </div>
+        <div className="relative">
+          <button onClick={() => setShowMenu((v) => !v)} className="p-1">
+            <span className="material-symbols-outlined text-2xl dark:text-white">more_vert</span>
+          </button>
+          {showMenu && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
+              <div className="absolute right-0 top-full mt-1 z-50 bg-white dark:bg-[#2d1a1d] rounded-xl shadow-xl border border-black/10 dark:border-white/10 min-w-[160px] overflow-hidden">
+                <button
+                  onClick={() => { setShowMenu(false); setShowLeaveModal(true); }}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                >
+                  <span className="material-symbols-outlined text-lg">logout</span>
+                  채팅방 나가기
+                </button>
+              </div>
+            </>
+          )}
+        </div>
       </header>
+
+      {/* 나가기 확인 모달 */}
+      {showLeaveModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50" onClick={() => setShowLeaveModal(false)}>
+          <div className="bg-white dark:bg-[#2d1a1d] rounded-2xl p-6 mx-6 max-w-sm w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-bold dark:text-white mb-2">채팅방 나가기</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">
+              방을 나가면 대화 내용이 모두 삭제됩니다.<br />정말 나가시겠습니까?
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowLeaveModal(false)}
+                className="flex-1 py-3 rounded-xl text-sm font-semibold bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-gray-300"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleLeaveRoom}
+                disabled={leaving}
+                className="flex-1 py-3 rounded-xl text-sm font-semibold bg-red-500 text-white disabled:opacity-50"
+              >
+                {leaving ? '나가는 중...' : '나가기'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 메시지 목록 */}
       <main className="flex-1 overflow-y-auto no-scrollbar p-4 space-y-4">

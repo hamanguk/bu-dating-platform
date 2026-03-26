@@ -144,6 +144,60 @@ exports.getTotalUnreadCount = async (req, res) => {
 };
 
 /**
+ * POST /api/chat/rooms/:roomId/leave
+ * 채팅방 나가기
+ */
+exports.leaveRoom = async (req, res) => {
+  try {
+    const { roomId } = req.params;
+    const userId = req.user._id;
+
+    const room = await ChatRoom.findOne({ _id: roomId, participants: userId });
+    if (!room) return res.status(404).json({ message: '채팅방을 찾을 수 없습니다.' });
+
+    // 시스템 메시지 생성
+    const user = req.user;
+    const nickname = user.nickname || '익명';
+    const systemMsg = await Message.create({
+      roomId: room._id,
+      sender: userId,
+      content: `${nickname}님이 퇴장하셨습니다.`,
+    });
+
+    // 소켓으로 시스템 메시지 브로드캐스트
+    const io = req.app.get('io');
+    if (io) {
+      const populated = await systemMsg.populate('sender', 'nickname');
+      io.to(roomId).emit('new_message', populated);
+      io.to(roomId).emit('room_updated', {
+        roomId,
+        lastMessage: { content: systemMsg.content, sender: userId, timestamp: systemMsg.createdAt },
+      });
+    }
+
+    // participants에서 제거
+    room.participants = room.participants.filter((p) => p.toString() !== userId.toString());
+
+    // 참여자가 0명이면 비활성화
+    if (room.participants.length === 0) {
+      room.isActive = false;
+    }
+
+    room.lastMessage = {
+      content: systemMsg.content,
+      sender: userId,
+      timestamp: systemMsg.createdAt,
+    };
+    await room.save();
+
+    res.json({ message: '채팅방을 나갔습니다.' });
+  } catch (err) {
+    console.error('Leave room error:', err);
+    res.status(500).json({ message: '채팅방 나가기 중 오류가 발생했습니다.' });
+  }
+};
+
+/**
  * GET /api/chat/rooms/:roomId/messages
  * 채팅방 메시지 조회 (페이지네이션)
  */
