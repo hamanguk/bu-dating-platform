@@ -1,4 +1,16 @@
 const Post = require('../models/Post');
+const User = require('../models/User');
+
+// 두 시간표에서 공강이 겹치는 시간대가 있는지 확인
+const hasTimetableOverlap = (a, b) => {
+  if (!a || !b) return false;
+  for (let day = 0; day < 5; day++) {
+    for (let period = 0; period < 9; period++) {
+      if (a[day]?.[period] && b[day]?.[period]) return true;
+    }
+  }
+  return false;
+};
 
 /**
  * GET /api/posts
@@ -11,21 +23,29 @@ exports.getPosts = async (req, res) => {
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
-    const [posts, total] = await Promise.all([
+    const [posts, total, me] = await Promise.all([
       Post.find(filter)
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(parseInt(limit))
-        .populate('author', 'nickname profileImage mbti gender'),
+        .populate('author', 'nickname profileImage mbti gender timetable'),
       Post.countDocuments(filter),
+      User.findById(req.user._id).select('timetable'),
     ]);
 
-    // 작성자 처리: 닉네임 + MBTI + 성별만 노출 (이름/학과 비노출)
+    const myTimetable = me?.timetable;
+
+    // 작성자 처리: 닉네임 + MBTI + 성별만 노출 (이름/학과/시간표 비노출)
     const processed = posts.map((post) => {
       const obj = post.toObject();
+      const authorTimetable = obj.author?.timetable;
+      // 공강 겹침 여부 (본인 글 제외)
+      const isOwn = post.author?._id?.toString() === req.user._id.toString();
+      obj.timetableMatch = !isOwn && hasTimetableOverlap(myTimetable, authorTimetable);
       if (obj.author) {
         delete obj.author.name;
         delete obj.author.department;
+        delete obj.author.timetable;
       }
       obj.likeCount = post.likes.length;
       obj.isLiked = post.likes.some((id) => id.toString() === req.user._id.toString());
@@ -54,16 +74,23 @@ exports.getPosts = async (req, res) => {
  */
 exports.getPost = async (req, res) => {
   try {
-    const post = await Post.findOne({ _id: req.params.id, isDeleted: false }).populate(
-      'author',
-      'nickname profileImage mbti gender'
-    );
+    const [post, me] = await Promise.all([
+      Post.findOne({ _id: req.params.id, isDeleted: false }).populate(
+        'author',
+        'nickname profileImage mbti gender timetable'
+      ),
+      User.findById(req.user._id).select('timetable'),
+    ]);
     if (!post) {
       return res.status(404).json({ message: '게시물을 찾을 수 없습니다.' });
     }
 
     const obj = post.toObject();
     const isOwner = post.author._id.toString() === req.user._id.toString();
+    obj.timetableMatch = !isOwner && hasTimetableOverlap(me?.timetable, obj.author?.timetable);
+    if (obj.author) {
+      delete obj.author.timetable;
+    }
     obj.likeCount = post.likes.length;
     obj.isLiked = post.likes.some((id) => id.toString() === req.user._id.toString());
     obj.isOwner = isOwner;

@@ -177,7 +177,14 @@ export default function PostDetailPage() {
       {/* 내용 */}
       <div className="p-6 space-y-5">
         <div>
-          <h2 className="text-2xl font-bold dark:text-white">{post.title}</h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-2xl font-bold dark:text-white">{post.title}</h2>
+            {post.timetableMatch && (
+              <span className="px-2.5 py-1 bg-green-100 dark:bg-green-900/30 text-green-600 text-[11px] font-bold rounded-full flex items-center gap-1 flex-shrink-0">
+                ⏰ 공강 일치!
+              </span>
+            )}
+          </div>
           <p className="text-sm text-gray-500 mt-1 flex items-center gap-1.5">
             <span>{post.author?.nickname || '익명'}</span>
             {post.author?.mbti && <span className="text-xs text-primary/60">{post.author.mbti}</span>}

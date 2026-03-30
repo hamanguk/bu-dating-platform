@@ -73,10 +73,15 @@ export default function PostCard({ post }) {
                 backgroundImage: `linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,0.6) 100%), url(${coverImage})`,
               }}
             >
-              <div className="absolute top-2 left-2">
+              <div className="absolute top-2 left-2 flex items-center gap-1">
                 <span className="bg-black/40 backdrop-blur-sm px-2 py-0.5 rounded-full text-[9px] font-bold text-white">
                   {menuIcon}
                 </span>
+                {post.timetableMatch && (
+                  <span className="bg-green-500/90 backdrop-blur-sm px-2 py-0.5 rounded-full text-[9px] font-bold text-white flex items-center gap-0.5">
+                    ⏰ 공강 일치!
+                  </span>
+                )}
               </div>
               <button
                 onClick={handleLike}
@@ -123,9 +128,16 @@ export default function PostCard({ post }) {
             {/* 사진 없는 카드 — 전체 그라데이션 + 제목/설명 중심 */}
             <div className={`relative p-4 min-h-[180px] bg-gradient-to-br ${showNeon ? 'from-purple-100 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20' : 'from-orange-50 to-pink-50 dark:from-white/5 dark:to-white/10'} flex flex-col justify-between`}>
               <div className="flex items-center justify-between">
-                <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${showNeon ? 'bg-purple-500/20 text-purple-600' : 'bg-primary/20 text-primary'}`}>
-                  {MEAL_TIME_LABEL[post.mealTime] || '밥약속'} · {post.participantsCount}명
-                </span>
+                <div className="flex items-center gap-1">
+                  <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${showNeon ? 'bg-purple-500/20 text-purple-600' : 'bg-primary/20 text-primary'}`}>
+                    {MEAL_TIME_LABEL[post.mealTime] || '밥약속'} · {post.participantsCount}명
+                  </span>
+                  {post.timetableMatch && (
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-green-100 dark:bg-green-900/30 text-green-600 flex items-center gap-0.5">
+                      ⏰ 공강 일치!
+                    </span>
+                  )}
+                </div>
                 <button
                   onClick={handleLike}
                   className="w-7 h-7 flex items-center justify-center rounded-full bg-white/60 dark:bg-black/20"
