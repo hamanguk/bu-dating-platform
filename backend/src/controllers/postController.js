@@ -5,7 +5,7 @@ const User = require('../models/User');
 const hasTimetableOverlap = (a, b) => {
   if (!a || !b) return false;
   for (let day = 0; day < 5; day++) {
-    for (let period = 0; period < 9; period++) {
+    for (let period = 0; period < 13; period++) {
       if (a[day]?.[period] && b[day]?.[period]) return true;
     }
   }
@@ -54,6 +54,13 @@ exports.getPosts = async (req, res) => {
       obj.isLiked = post.likes.some((id) => id.toString() === req.user._id.toString());
       delete obj.likes;
       return obj;
+    });
+
+    // 공강 겹치는 게시물을 최상단에 노출
+    processed.sort((a, b) => {
+      if (a.timetableMatch && !b.timetableMatch) return -1;
+      if (!a.timetableMatch && b.timetableMatch) return 1;
+      return new Date(b.createdAt) - new Date(a.createdAt);
     });
 
     res.json({
@@ -116,19 +123,15 @@ exports.createPost = async (req, res) => {
     if (!title) {
       return res.status(400).json({ message: '제목은 필수입니다.' });
     }
-    // menuCategory: FormData에서 문자열/JSON으로 올 수 있음
-    let categories = menuCategory;
+
+    // menuCategory: FormData에서 문자열/JSON으로 올 수 있음 (선택 사항)
+    let categories = menuCategory || [];
     if (typeof categories === 'string') {
       try { categories = JSON.parse(categories); } catch { categories = [categories]; }
     }
-    if (!Array.isArray(categories) || categories.length === 0) {
-      return res.status(400).json({ message: '메뉴 카테고리를 최소 1개 선택해주세요.' });
-    }
-    if (!mealTime) {
-      return res.status(400).json({ message: '식사 시간은 필수입니다.' });
-    }
-    const validPurpose = ['meal', 'cafe', 'study', 'carpool'].includes(purpose) ? purpose : 'meal';
+    if (!Array.isArray(categories)) categories = [];
 
+    const validPurpose = ['meal', 'cafe', 'study', 'carpool'].includes(purpose) ? purpose : 'meal';
     const images = req.files?.map((f) => f.path).filter(Boolean) || [];
 
     const post = await Post.create({
@@ -137,7 +140,7 @@ exports.createPost = async (req, res) => {
       description: description?.trim() || '',
       purpose: validPurpose,
       menuCategory: categories,
-      mealTime,
+      mealTime: mealTime || '',
       participantsCount: parseInt(participantsCount) || 2,
       genderPreference: genderPreference || 'any',
       images,

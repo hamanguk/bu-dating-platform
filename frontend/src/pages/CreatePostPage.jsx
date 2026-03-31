@@ -1,40 +1,15 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPost } from '../services/api';
 
-const PURPOSE_OPTIONS = [
-  { value: 'meal', label: '식사', icon: '🍚', color: 'from-orange-500 to-amber-400' },
-  { value: 'cafe', label: '카페/차', icon: '☕', color: 'from-amber-500 to-yellow-400' },
-  { value: 'study', label: '스터디', icon: '📚', color: 'from-blue-500 to-cyan-400' },
-  { value: 'carpool', label: '카풀', icon: '🚗', color: 'from-green-500 to-emerald-400' },
-];
-
-const MEAL_GRADIENTS = {
-  breakfast: 'from-amber-100 to-yellow-50',
-  lunch: 'from-orange-100 to-amber-50',
-  dinner: 'from-rose-100 to-pink-50',
-  late_night: 'from-indigo-100 to-purple-50',
-};
-
-const MEAL_ICONS = {
-  breakfast: '🌅',
-  lunch: '☀️',
-  dinner: '🌆',
-  late_night: '🌙',
-};
-
-const MENU_OPTIONS = [
-  { value: 'korean', label: '한식', icon: '🍚' },
-  { value: 'chinese', label: '중식', icon: '🥟' },
-  { value: 'japanese', label: '일식', icon: '🍣' },
-  { value: 'western', label: '양식', icon: '🍝' },
-  { value: 'cafe', label: '카페', icon: '☕' },
-  { value: 'chicken', label: '치킨', icon: '🍗' },
-  { value: 'pizza', label: '피자', icon: '🍕' },
-  { value: 'snack', label: '분식', icon: '🍜' },
-  { value: 'beer', label: '맥주', icon: '🍺' },
-  { value: 'soju', label: '소주', icon: '🍶' },
-  { value: 'other', label: '기타', icon: '🍽️' },
+const PLACEHOLDERS = [
+  '공강인데 학식 같이 먹을 사람!',
+  '자취방 근처에서 삼겹살 번개 하실 분?',
+  '점심에 혼밥 싫어요... 같이 먹어요!',
+  '카페에서 공부하면서 커피 한잔 할 사람~',
+  '오늘 저녁 치킨 먹을 사람 구합니다!',
+  '학교 앞 맛집 탐방 같이 갈 사람?',
+  '야식으로 라면 끓여 먹을 사람!',
 ];
 
 export default function CreatePostPage() {
@@ -44,23 +19,17 @@ export default function CreatePostPage() {
   const [error, setError] = useState('');
   const [previews, setPreviews] = useState([]);
   const [files, setFiles] = useState([]);
+  const [placeholder, setPlaceholder] = useState('');
 
   const [form, setForm] = useState({
-    purpose: 'meal',
     title: '',
-    description: '',
-    menuCategory: [],
-    mealTime: '',
-    participantsCount: 2,
-    genderPreference: '',
   });
 
-  const isValid = form.title.trim().length >= 1 && form.description.trim().length >= 10 && form.menuCategory.length > 0 && form.mealTime;
+  useEffect(() => {
+    setPlaceholder(PLACEHOLDERS[Math.floor(Math.random() * PLACEHOLDERS.length)]);
+  }, []);
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setForm((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
-  };
+  const isValid = form.title.trim().length >= 1;
 
   const handleImageSelect = (e) => {
     const selected = Array.from(e.target.files || []);
@@ -87,29 +56,11 @@ export default function CreatePostPage() {
       setError('제목을 입력해주세요.');
       return;
     }
-    if (form.description.trim().length < 10) {
-      setError('설명을 10자 이상 입력해주세요.');
-      return;
-    }
-    if (form.menuCategory.length === 0) {
-      setError('메뉴를 최소 1개 선택해주세요.');
-      return;
-    }
-    if (!form.mealTime) {
-      setError('식사 시간을 선택해주세요.');
-      return;
-    }
     setSubmitting(true);
     setError('');
     try {
       const formData = new FormData();
-      formData.append('purpose', form.purpose);
       formData.append('title', form.title.trim());
-      formData.append('description', form.description.trim());
-      formData.append('menuCategory', JSON.stringify(form.menuCategory));
-      formData.append('mealTime', form.mealTime);
-      formData.append('participantsCount', form.participantsCount);
-      formData.append('genderPreference', form.genderPreference || 'any');
       files.forEach((f) => formData.append('images', f));
 
       await createPost(formData);
@@ -126,8 +77,6 @@ export default function CreatePostPage() {
     }
   };
 
-  const selectedMenuIcons = form.menuCategory.map((v) => MENU_OPTIONS.find((m) => m.value === v)?.icon).filter(Boolean).join(' ');
-
   return (
     <div className="flex flex-col bg-background-light dark:bg-background-dark min-h-screen pb-40">
       {/* 헤더 */}
@@ -135,9 +84,7 @@ export default function CreatePostPage() {
         <button onClick={() => navigate(-1)} className="flex size-10 items-center justify-center rounded-full hover:bg-black/5">
           <span className="material-symbols-outlined dark:text-white">arrow_back_ios_new</span>
         </button>
-        <h2 className="text-lg font-bold dark:text-white flex-1 text-center pr-10">
-          {{ meal: '밥 약속', cafe: '카페/차 약속', study: '스터디 모집', carpool: '카풀 모집' }[form.purpose]} 제안
-        </h2>
+        <h2 className="text-lg font-bold dark:text-white flex-1 text-center pr-10">약속 제안</h2>
       </div>
 
       <div className="px-4 space-y-6 mt-2">
@@ -147,41 +94,43 @@ export default function CreatePostPage() {
           </div>
         )}
 
-        {/* 목적 선택 */}
+        {/* 안내 */}
+        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-2xl px-4 py-3 flex items-center gap-2">
+          <span className="material-symbols-outlined text-blue-500 text-[18px]">info</span>
+          <p className="text-xs text-blue-600 dark:text-blue-300 font-medium leading-relaxed">
+            글을 올리면 내 공강 시간이 자동으로 매칭에 반영돼요!<br />
+            같은 시간이 비는 친구에게 내 글이 더 잘 보입니다.
+          </p>
+        </div>
+
+        {/* 제목 */}
         <section>
-          <h3 className="text-sm font-bold text-primary/80 uppercase tracking-wider mb-3">
-            어떤 약속인가요? <span className="text-primary">*</span>
+          <h3 className="text-sm font-bold text-primary/80 uppercase tracking-wider mb-2 flex items-center gap-1">
+            <span className="material-symbols-outlined text-[16px]">edit</span>
+            제목 <span className="text-primary">*</span>
           </h3>
-          <div className="grid grid-cols-4 gap-2">
-            {PURPOSE_OPTIONS.map(({ value, label, icon, color }) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setForm((p) => ({ ...p, purpose: value }))}
-                className={`py-3 rounded-xl text-sm font-bold transition-all flex flex-col items-center gap-1 ${
-                  form.purpose === value
-                    ? `bg-gradient-to-r ${color} text-white shadow-md scale-105`
-                    : 'bg-white dark:bg-[#2d1e14] text-gray-600 dark:text-gray-300 shadow-sm'
-                }`}
-              >
-                <span className="text-xl">{icon}</span>
-                <span className="text-xs">{label}</span>
-              </button>
-            ))}
-          </div>
+          <input
+            name="title"
+            value={form.title}
+            onChange={(e) => setForm({ title: e.target.value })}
+            maxLength={100}
+            placeholder={`예: ${placeholder}`}
+            className="w-full bg-white dark:bg-[#2d1e14] border-none rounded-2xl h-14 px-5 text-base font-medium focus:ring-2 focus:ring-primary shadow-sm dark:text-white"
+          />
+          <p className="text-[10px] text-gray-400 mt-1 text-right">{form.title.length}/100</p>
         </section>
 
         {/* 미리보기 */}
         {form.title && (
-          <div className="rounded-xl shadow-lg bg-white dark:bg-[#2d1e14] overflow-hidden border border-black/5">
+          <div className="rounded-2xl shadow-lg bg-white dark:bg-[#2d1e14] overflow-hidden border border-black/5">
             {previews.length > 0 ? (
               <div
                 className="h-40 bg-center bg-cover"
                 style={{ backgroundImage: `linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,0.5) 100%), url(${previews[0]})` }}
               />
             ) : (
-              <div className={`h-40 bg-gradient-to-br ${MEAL_GRADIENTS[form.mealTime] || 'from-orange-100 to-amber-50'} dark:from-white/5 dark:to-white/10 flex items-center justify-center`}>
-                <span className="text-5xl">{selectedMenuIcons || MEAL_ICONS[form.mealTime] || '🍽️'}</span>
+              <div className="h-32 bg-gradient-to-br from-primary/10 to-accent/10 dark:from-white/5 dark:to-white/10 flex items-center justify-center">
+                <span className="material-symbols-outlined text-primary/30 text-[64px]">restaurant</span>
               </div>
             )}
             <div className="p-4">
@@ -189,97 +138,18 @@ export default function CreatePostPage() {
                 <span className="size-2 rounded-full bg-green-500 animate-pulse" />
                 <p className="text-primary text-xs font-bold uppercase tracking-widest">미리보기</p>
               </div>
-              <p className="text-[#1d0c0f] dark:text-white text-xl font-bold">
-                {selectedMenuIcons} {form.title}
-              </p>
-              <p className="text-primary/70 text-sm font-medium mt-1">
-                {form.participantsCount}명
-                {form.mealTime && ` · ${{ breakfast: '아침', lunch: '점심', dinner: '저녁', late_night: '야식' }[form.mealTime]}`}
-              </p>
+              <p className="text-[#1d0c0f] dark:text-white text-lg font-bold">{form.title}</p>
             </div>
           </div>
         )}
 
-        {/* 메뉴 선택 (필수) */}
-        <section>
-          <h3 className="text-sm font-bold text-primary/80 uppercase tracking-wider mb-1">
-            오늘 먹고 싶은 메뉴 <span className="text-primary">*</span>
-          </h3>
-          <p className="text-[11px] text-gray-400 mb-3">복수 선택 가능</p>
-          <div className="grid grid-cols-3 gap-2">
-            {MENU_OPTIONS.map(({ value, label, icon }) => {
-              const selected = form.menuCategory.includes(value);
-              return (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => setForm((p) => ({
-                    ...p,
-                    menuCategory: selected
-                      ? p.menuCategory.filter((v) => v !== value)
-                      : [...p.menuCategory, value],
-                  }))}
-                  className={`py-3 rounded-xl text-sm font-bold transition-all flex flex-col items-center gap-1 ${
-                    selected
-                      ? 'bg-primary text-white shadow-md scale-105'
-                      : 'bg-white dark:bg-[#2d1e14] text-gray-600 dark:text-gray-300 shadow-sm'
-                  }`}
-                >
-                  <span className="text-xl">{icon}</span>
-                  <span className="text-xs">{label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* 식사 시간 선택 (필수) */}
-        <section>
-          <h3 className="text-sm font-bold text-primary/80 uppercase tracking-wider mb-3">
-            식사 시간 <span className="text-primary">*</span>
-          </h3>
-          <div className="grid grid-cols-4 gap-2">
-            {[
-              { value: 'breakfast', label: '아침', icon: '🌅', time: '07-09시' },
-              { value: 'lunch', label: '점심', icon: '☀️', time: '11-14시' },
-              { value: 'dinner', label: '저녁', icon: '🌆', time: '17-19시' },
-              { value: 'late_night', label: '야식', icon: '🌙', time: '21시~' },
-            ].map(({ value, label, icon, time }) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setForm((p) => ({ ...p, mealTime: value }))}
-                className={`py-3 rounded-xl text-sm font-bold transition-all flex flex-col items-center gap-0.5 ${
-                  form.mealTime === value
-                    ? 'bg-primary text-white shadow-md scale-105'
-                    : 'bg-white dark:bg-[#2d1e14] text-gray-600 dark:text-gray-300 shadow-sm'
-                }`}
-              >
-                <span className="text-lg">{icon}</span>
-                <span className="text-xs">{label}</span>
-                <span className="text-[9px] opacity-70">{time}</span>
-              </button>
-            ))}
-          </div>
-        </section>
-
-        {/* 제목 */}
-        <section>
-          <h3 className="text-sm font-bold text-primary/80 uppercase tracking-wider mb-2">제목 *</h3>
-          <input
-            name="title"
-            value={form.title}
-            onChange={handleChange}
-            maxLength={100}
-            placeholder="예: 학식 같이 먹을 사람!"
-            className="w-full bg-white dark:bg-[#2d1e14] border-none rounded-xl h-12 px-4 text-sm font-medium focus:ring-2 focus:ring-primary shadow-sm dark:text-white"
-          />
-        </section>
-
         {/* 사진 업로드 */}
         <section>
-          <h3 className="text-sm font-bold text-primary/80 uppercase tracking-wider mb-1">사진 추가 <span className="text-gray-400 font-medium">(선택)</span></h3>
-          <p className="text-[11px] text-gray-400 mb-3">사진이 없으면 메뉴에 맞는 기본 배경이 표시됩니다</p>
+          <h3 className="text-sm font-bold text-primary/80 uppercase tracking-wider mb-1 flex items-center gap-1">
+            <span className="material-symbols-outlined text-[16px]">photo_camera</span>
+            사진 추가 <span className="text-gray-400 font-medium">(선택)</span>
+          </h3>
+          <p className="text-[11px] text-gray-400 mb-3">사진이 없으면 기본 배경이 표시됩니다</p>
           <div className="flex gap-2 flex-wrap">
             {previews.map((src, idx) => (
               <div key={idx} className="relative w-20 h-20">
@@ -288,76 +158,22 @@ export default function CreatePostPage() {
                   onClick={() => removeImage(idx)}
                   className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-[10px]"
                 >
-                  ✕
+                  <span className="material-symbols-outlined text-[12px]">close</span>
                 </button>
               </div>
             ))}
             {files.length < 5 && (
               <button
                 onClick={() => fileRef.current?.click()}
-                className="w-20 h-20 rounded-xl border-2 border-dashed border-primary/30 bg-primary/5 flex flex-col items-center justify-center gap-1 hover:bg-primary/10"
+                className="w-20 h-20 rounded-xl border-2 border-dashed border-primary/30 bg-primary/5 flex flex-col items-center justify-center gap-1 hover:bg-primary/10 transition-colors"
               >
                 <span className="material-symbols-outlined text-primary text-2xl">add_a_photo</span>
-                <span className="text-[10px] text-primary">추가</span>
+                <span className="text-[10px] text-primary font-medium">추가</span>
               </button>
             )}
           </div>
           <input ref={fileRef} type="file" accept=".jpg,.jpeg,.png" multiple className="hidden" onChange={handleImageSelect} />
         </section>
-
-        {/* 인원수 */}
-        <section>
-          <h3 className="text-sm font-bold text-primary/80 uppercase tracking-wider mb-3">인원수</h3>
-          <div className="flex bg-black/5 dark:bg-white/5 p-1.5 rounded-full">
-            {[2, 3, 4].map((n) => (
-              <button
-                key={n}
-                onClick={() => setForm((p) => ({ ...p, participantsCount: n }))}
-                className={`flex-1 py-3 text-sm font-bold rounded-full transition-all ${form.participantsCount === n ? 'bg-white dark:bg-[#3d262a] shadow-sm text-primary' : 'text-gray-500'}`}
-              >
-                {n}명
-              </button>
-            ))}
-          </div>
-        </section>
-
-        {/* 성별 선택 */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-primary/80 uppercase tracking-wider">성별 선호</label>
-            <select
-              name="genderPreference"
-              value={form.genderPreference}
-              onChange={handleChange}
-              className="w-full bg-white dark:bg-[#2d1e14] border-none rounded-xl h-12 px-4 text-sm font-medium focus:ring-2 focus:ring-primary shadow-sm dark:text-white"
-            >
-              <option value="">상관없음</option>
-              <option value="male">남성</option>
-              <option value="female">여성</option>
-            </select>
-          </div>
-          <div className="flex items-end">
-            <div className="flex items-center bg-white dark:bg-[#2d1e14] rounded-xl h-12 px-4 shadow-sm w-full gap-2">
-              <span className="material-symbols-outlined text-primary text-sm">school</span>
-              <span className="text-sm font-medium dark:text-white">백석대 인증됨</span>
-            </div>
-          </div>
-        </div>
-
-        {/* 설명 */}
-        <section>
-          <h3 className="text-sm font-bold text-primary/80 uppercase tracking-wider mb-2">상세 설명 *</h3>
-          <textarea
-            name="description"
-            value={form.description}
-            onChange={handleChange}
-            maxLength={1000}
-            placeholder="예: 12시에 학식 같이 먹어요! 아무나 환영입니다 😊 (최소 10자)"
-            className="w-full bg-white dark:bg-[#2d1e14] border-none rounded-xl p-4 text-sm font-medium focus:ring-2 focus:ring-primary shadow-sm min-h-[100px] resize-none dark:text-white"
-          />
-          <p className="text-xs text-gray-400 mt-1 text-right">{form.description.length}/1000</p>
-        </section>
-
       </div>
 
       {/* 게시 버튼 */}
@@ -374,7 +190,7 @@ export default function CreatePostPage() {
           ) : (
             <>
               <span className="material-symbols-outlined">send</span>
-              <span>{{ meal: '밥 약속', cafe: '카페 약속', study: '스터디', carpool: '카풀' }[form.purpose]} 제안하기</span>
+              <span>약속 제안하기</span>
             </>
           )}
         </button>
