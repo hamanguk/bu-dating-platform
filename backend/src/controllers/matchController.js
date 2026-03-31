@@ -1,6 +1,6 @@
 const User = require('../models/User');
 
-// 교시 → 시간 매핑 (백석대 기준)
+// 교시 → 시간 매핑 (09:00~21:00, 13교시)
 const PERIOD_TIMES = [
   { start: 9, end: 10 },   // 1교시
   { start: 10, end: 11 },  // 2교시
@@ -11,6 +11,10 @@ const PERIOD_TIMES = [
   { start: 15, end: 16 },  // 7교시
   { start: 16, end: 17 },  // 8교시
   { start: 17, end: 18 },  // 9교시
+  { start: 18, end: 19 },  // 10교시
+  { start: 19, end: 20 },  // 11교시
+  { start: 20, end: 21 },  // 12교시
+  { start: 21, end: 22 },  // 13교시
 ];
 
 /**

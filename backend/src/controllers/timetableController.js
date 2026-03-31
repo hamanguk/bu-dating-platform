@@ -9,18 +9,18 @@ const EVERYTIME_URL_PATTERN = /^https?:\/\/everytime\.kr\/@[a-zA-Z0-9]+$/;
 const DAY_MAP = { 0: 0, 1: 1, 2: 2, 3: 3, 4: 4 }; // 월~금
 const DAY_NAMES = ['월', '화', '수', '목', '금'];
 
-// 교시 시간 범위 (09:00 ~ 17:59)
-const PERIOD_START_HOURS = [9, 10, 11, 12, 13, 14, 15, 16, 17];
+// 교시 시간 범위 (09:00 ~ 21:59, 13교시)
+const PERIOD_START_HOURS = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21];
 
 /**
  * 시간(HH:MM 형태)을 교시 인덱스로 변환
- * 09:00 → 0 (1교시), 10:00 → 1 (2교시), ...
+ * 09:00 → 0 (1교시), 10:00 → 1 (2교시), ... 21:00 → 12 (13교시)
  */
 function timeToPeriodIndex(hours, minutes) {
   const totalMinutes = hours * 60 + minutes;
   // 09:00 = 0교시, 10:00 = 1교시, ...
   const periodIdx = Math.floor((totalMinutes - 540) / 60); // 540 = 9*60
-  return Math.max(0, Math.min(8, periodIdx));
+  return Math.max(0, Math.min(12, periodIdx));
 }
 
 /**
@@ -30,7 +30,7 @@ function timeToPeriodIndex(hours, minutes) {
  */
 function buildTimetableGrid(subjects) {
   // 먼저 모든 칸을 공강(true)으로 초기화
-  const grid = Array.from({ length: 5 }, () => Array(9).fill(true));
+  const grid = Array.from({ length: 5 }, () => Array(13).fill(true));
 
   for (const subj of subjects) {
     if (subj.day < 0 || subj.day > 4) continue;

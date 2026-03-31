@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
 
-// 5(월~금) x 9(1~9교시) 시간표 기본값 생성
+// 5(월~금) x 13(1~13교시, 09:00~21:00) 시간표 기본값 생성
 const defaultTimetable = () =>
-  Array.from({ length: 5 }, () => Array(9).fill(false));
+  Array.from({ length: 5 }, () => Array(13).fill(false));
 
 const userSchema = new mongoose.Schema(
   {

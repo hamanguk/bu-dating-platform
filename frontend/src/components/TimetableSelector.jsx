@@ -9,6 +9,10 @@ const PERIODS = [
   { label: '7교시', time: '15:00' },
   { label: '8교시', time: '16:00' },
   { label: '9교시', time: '17:00' },
+  { label: '10교시', time: '18:00', badge: '🍺 저녁' },
+  { label: '11교시', time: '19:00' },
+  { label: '12교시', time: '20:00' },
+  { label: '13교시', time: '21:00' },
 ];
 
 export default function TimetableSelector({ timetable, onChange }) {

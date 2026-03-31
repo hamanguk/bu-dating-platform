@@ -90,7 +90,7 @@ export default function TimetableImport({ onImport, onFallback }) {
                   <div key={d} className="text-[10px] font-bold text-gray-500 py-1">{d}</div>
                 ))}
               </div>
-              {Array.from({ length: 9 }, (_, pIdx) => (
+              {Array.from({ length: 13 }, (_, pIdx) => (
                 <div key={pIdx} className="grid grid-cols-[36px_repeat(5,1fr)]">
                   <div className="text-[9px] text-gray-400 flex items-center justify-center">
                     {pIdx + 1}교시

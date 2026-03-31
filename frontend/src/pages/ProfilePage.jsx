@@ -21,7 +21,7 @@ const FOOD_OPTIONS = [
   { value: 'soju', label: '소주 🍶' },
 ];
 
-const defaultTimetable = () => Array.from({ length: 5 }, () => Array(9).fill(false));
+const defaultTimetable = () => Array.from({ length: 5 }, () => Array(13).fill(false));
 
 export default function ProfilePage() {
   const { user, setUser, logout } = useAuth();
