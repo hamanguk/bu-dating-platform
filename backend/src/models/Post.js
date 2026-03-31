@@ -7,10 +7,16 @@ const postSchema = new mongoose.Schema(
       ref: 'User',
       required: true,
     },
-    // 하위호환: 기존 데이터 유지, 새 글은 기본값 meal
+    // 하위호환: 기존 데이터 유지
     type: {
       type: String,
       enum: ['meal', 'drink'],
+      default: 'meal',
+    },
+    // 게시물 목적 (신규 — 카드 디자인 분기)
+    purpose: {
+      type: String,
+      enum: ['meal', 'cafe', 'study', 'carpool'],
       default: 'meal',
     },
     title: {
@@ -73,5 +79,6 @@ const postSchema = new mongoose.Schema(
 
 postSchema.index({ createdAt: -1 });
 postSchema.index({ author: 1 });
+postSchema.index({ purpose: 1, createdAt: -1 });
 
 module.exports = mongoose.model('Post', postSchema);

@@ -13,6 +13,8 @@ import PostDetailPage from './pages/PostDetailPage';
 import EditPostPage from './pages/EditPostPage';
 import ChatListPage from './pages/ChatListPage';
 import ChatPage from './pages/ChatPage';
+import MatchPage from './pages/MatchPage';
+import BenefitsPage from './pages/BenefitsPage';
 import AdminPage from './pages/AdminPage';
 
 class ErrorBoundary extends Component {
@@ -188,6 +190,8 @@ export default function App() {
             <Route path="/posts" element={<MainFeedPage />} />
             <Route path="/posts/:id" element={<PostDetailPage />} />
             <Route path="/posts/:id/edit" element={<EditPostPage />} />
+            <Route path="/match" element={<MatchPage />} />
+            <Route path="/benefits" element={<BenefitsPage />} />
             <Route path="/chat" element={<ChatListPage />} />
             <Route path="/chat/:roomId" element={<ChatPage />} />
             <Route

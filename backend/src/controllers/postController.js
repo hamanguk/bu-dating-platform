@@ -18,8 +18,11 @@ const hasTimetableOverlap = (a, b) => {
  */
 exports.getPosts = async (req, res) => {
   try {
-    const { page = 1, limit = 10 } = req.query;
+    const { page = 1, limit = 10, purpose } = req.query;
     const filter = { isDeleted: false };
+    if (purpose && ['meal', 'cafe', 'study', 'carpool'].includes(purpose)) {
+      filter.purpose = purpose;
+    }
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
@@ -108,7 +111,7 @@ exports.getPost = async (req, res) => {
  */
 exports.createPost = async (req, res) => {
   try {
-    const { title, description, menuCategory, mealTime, participantsCount, genderPreference, isAnonymous } = req.body;
+    const { title, description, menuCategory, mealTime, participantsCount, genderPreference, isAnonymous, purpose } = req.body;
 
     if (!title) {
       return res.status(400).json({ message: '제목은 필수입니다.' });
@@ -124,6 +127,7 @@ exports.createPost = async (req, res) => {
     if (!mealTime) {
       return res.status(400).json({ message: '식사 시간은 필수입니다.' });
     }
+    const validPurpose = ['meal', 'cafe', 'study', 'carpool'].includes(purpose) ? purpose : 'meal';
 
     const images = req.files?.map((f) => f.path).filter(Boolean) || [];
 
@@ -131,6 +135,7 @@ exports.createPost = async (req, res) => {
       author: req.user._id,
       title: title.trim(),
       description: description?.trim() || '',
+      purpose: validPurpose,
       menuCategory: categories,
       mealTime,
       participantsCount: parseInt(participantsCount) || 2,

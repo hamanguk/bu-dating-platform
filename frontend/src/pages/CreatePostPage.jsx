@@ -2,6 +2,13 @@ import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPost } from '../services/api';
 
+const PURPOSE_OPTIONS = [
+  { value: 'meal', label: '식사', icon: '🍚', color: 'from-orange-500 to-amber-400' },
+  { value: 'cafe', label: '카페/차', icon: '☕', color: 'from-amber-500 to-yellow-400' },
+  { value: 'study', label: '스터디', icon: '📚', color: 'from-blue-500 to-cyan-400' },
+  { value: 'carpool', label: '카풀', icon: '🚗', color: 'from-green-500 to-emerald-400' },
+];
+
 const MEAL_GRADIENTS = {
   breakfast: 'from-amber-100 to-yellow-50',
   lunch: 'from-orange-100 to-amber-50',
@@ -39,6 +46,7 @@ export default function CreatePostPage() {
   const [files, setFiles] = useState([]);
 
   const [form, setForm] = useState({
+    purpose: 'meal',
     title: '',
     description: '',
     menuCategory: [],
@@ -95,6 +103,7 @@ export default function CreatePostPage() {
     setError('');
     try {
       const formData = new FormData();
+      formData.append('purpose', form.purpose);
       formData.append('title', form.title.trim());
       formData.append('description', form.description.trim());
       formData.append('menuCategory', JSON.stringify(form.menuCategory));
@@ -126,7 +135,9 @@ export default function CreatePostPage() {
         <button onClick={() => navigate(-1)} className="flex size-10 items-center justify-center rounded-full hover:bg-black/5">
           <span className="material-symbols-outlined dark:text-white">arrow_back_ios_new</span>
         </button>
-        <h2 className="text-lg font-bold dark:text-white flex-1 text-center pr-10">밥 약속 제안</h2>
+        <h2 className="text-lg font-bold dark:text-white flex-1 text-center pr-10">
+          {{ meal: '밥 약속', cafe: '카페/차 약속', study: '스터디 모집', carpool: '카풀 모집' }[form.purpose]} 제안
+        </h2>
       </div>
 
       <div className="px-4 space-y-6 mt-2">
@@ -135,6 +146,30 @@ export default function CreatePostPage() {
             <p className="text-red-600 text-sm">{error}</p>
           </div>
         )}
+
+        {/* 목적 선택 */}
+        <section>
+          <h3 className="text-sm font-bold text-primary/80 uppercase tracking-wider mb-3">
+            어떤 약속인가요? <span className="text-primary">*</span>
+          </h3>
+          <div className="grid grid-cols-4 gap-2">
+            {PURPOSE_OPTIONS.map(({ value, label, icon, color }) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setForm((p) => ({ ...p, purpose: value }))}
+                className={`py-3 rounded-xl text-sm font-bold transition-all flex flex-col items-center gap-1 ${
+                  form.purpose === value
+                    ? `bg-gradient-to-r ${color} text-white shadow-md scale-105`
+                    : 'bg-white dark:bg-[#2d1e14] text-gray-600 dark:text-gray-300 shadow-sm'
+                }`}
+              >
+                <span className="text-xl">{icon}</span>
+                <span className="text-xs">{label}</span>
+              </button>
+            ))}
+          </div>
+        </section>
 
         {/* 미리보기 */}
         {form.title && (
@@ -339,7 +374,7 @@ export default function CreatePostPage() {
           ) : (
             <>
               <span className="material-symbols-outlined">send</span>
-              <span>밥 약속 제안하기</span>
+              <span>{{ meal: '밥 약속', cafe: '카페 약속', study: '스터디', carpool: '카풀' }[form.purpose]} 제안하기</span>
             </>
           )}
         </button>

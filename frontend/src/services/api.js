@@ -73,6 +73,19 @@ export const leaveRoom = (roomId) => api.post(`/chat/rooms/${roomId}/leave`);
 export const saveFcmToken = (token) => api.post('/notifications/fcm-token', { token });
 export const deleteFcmToken = (token) => api.delete('/notifications/fcm-token', { data: { token } });
 
+// Events (비즈니스 혜택/이벤트)
+export const getEvents = (params) => api.get('/events', { params });
+export const createEvent = (formData) =>
+  api.post('/events', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+export const deleteEvent = (id) => api.delete(`/events/${id}`);
+export const toggleEventLike = (id) => api.post(`/events/${id}/like`);
+
+// Timetable (에브리타임 크롤링)
+export const parseTimetable = (url) => api.post('/timetable/parse', { url });
+export const saveTimetable = (data) => api.post('/timetable/save', data);
+
 // Reports
 export const createReport = (data) => api.post('/reports', data);
 

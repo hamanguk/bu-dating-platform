@@ -4,9 +4,11 @@ import { getTotalUnreadCount } from '../services/api';
 import { getSocket } from '../services/socket';
 
 const navItems = [
-  { path: '/chat',    icon: 'chat_bubble', label: '채팅' },
-  { path: '/',        icon: 'restaurant',  label: '홈' },
-  { path: '/profile', icon: 'person',      label: '프로필' },
+  { path: '/',          icon: 'home',         label: '홈' },
+  { path: '/match',     icon: 'handshake',    label: '매칭' },
+  { path: '/benefits',  icon: 'local_offer',  label: '혜택' },
+  { path: '/chat',      icon: 'chat_bubble',  label: '채팅' },
+  { path: '/profile',   icon: 'person',       label: '내정보' },
 ];
 
 export default function BottomNav() {

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { updateProfile, checkNickname } from '../services/api';
 import TimetableSelector from '../components/TimetableSelector';
+import TimetableImport from '../components/TimetableImport';
 
 const MBTI_LIST = ['INTJ','INTP','ENTJ','ENTP','INFJ','INFP','ENFJ','ENFP',
                    'ISTJ','ISFJ','ESTJ','ESFJ','ISTP','ISFP','ESTP','ESFP'];
@@ -34,13 +35,18 @@ export default function ProfilePage() {
   const [form, setForm] = useState({
     nickname: user?.nickname || '',
     mbti: user?.mbti || '',
-
     gender: user?.gender || '',
     bio: user?.bio || '',
     foodPreferences: user?.foodPreferences || [],
     diningStyle: user?.diningStyle || '',
     timetable: user?.timetable || defaultTimetable(),
+    freeTime: user?.freeTime || '',
+    majorCourses: user?.majorCourses || [],
+    interests: user?.interests || [],
   });
+  const [courseInput, setCourseInput] = useState('');
+  const [interestInput, setInterestInput] = useState('');
+  const [timetableMode, setTimetableMode] = useState('import'); // 'import' | 'manual'
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -245,7 +251,7 @@ export default function ProfilePage() {
         </div>
 
         {/* 시간표 (필수) */}
-        <div className={`space-y-2 rounded-2xl p-4 shadow-sm border-2 ${
+        <div className={`space-y-3 rounded-2xl p-4 shadow-sm border-2 ${
           hasFreePeriod
             ? 'bg-white dark:bg-[#2d1e14] border-primary/20'
             : 'bg-orange-50 dark:bg-orange-900/10 border-primary'
@@ -265,15 +271,134 @@ export default function ProfilePage() {
               </span>
             )}
           </div>
-          {!hasFreePeriod && (
-            <p className="text-xs text-primary/80">
-              공강 시간을 선택해야 밥 친구 매칭이 시작됩니다!
-            </p>
+
+          {/* 에타 가져오기 / 직접 입력 탭 */}
+          <div className="flex bg-gray-100 dark:bg-white/5 rounded-xl p-1">
+            <button
+              type="button"
+              onClick={() => setTimetableMode('import')}
+              className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 ${
+                timetableMode === 'import'
+                  ? 'bg-white dark:bg-[#3d2e24] text-primary shadow-sm'
+                  : 'text-gray-400'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[14px]">download</span>
+              에타에서 가져오기
+            </button>
+            <button
+              type="button"
+              onClick={() => setTimetableMode('manual')}
+              className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 ${
+                timetableMode === 'manual'
+                  ? 'bg-white dark:bg-[#3d2e24] text-primary shadow-sm'
+                  : 'text-gray-400'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[14px]">edit</span>
+              직접 입력
+            </button>
+          </div>
+
+          {timetableMode === 'import' ? (
+            <TimetableImport
+              onImport={({ timetable, majorCourses }) => {
+                setForm((prev) => ({
+                  ...prev,
+                  timetable,
+                  majorCourses: [...new Set([...prev.majorCourses, ...majorCourses])].slice(0, 20),
+                }));
+                setTimetableMode('manual'); // 적용 후 수동 모드로 전환 (미세 조정 가능)
+                setSuccess('시간표를 가져왔습니다! 필요하면 아래에서 수정하세요.');
+                setTimeout(() => setSuccess(''), 4000);
+              }}
+              onFallback={() => setTimetableMode('manual')}
+            />
+          ) : (
+            <>
+              {!hasFreePeriod && (
+                <p className="text-xs text-primary/80">
+                  공강 시간을 선택해야 밥 친구 매칭이 시작됩니다!
+                </p>
+              )}
+              <TimetableSelector
+                timetable={form.timetable}
+                onChange={(t) => setForm((prev) => ({ ...prev, timetable: t }))}
+              />
+            </>
           )}
-          <TimetableSelector
-            timetable={form.timetable}
-            onChange={(t) => setForm((prev) => ({ ...prev, timetable: t }))}
+        </div>
+
+        {/* 공강 시간 텍스트 */}
+        <div className="space-y-1">
+          <label className="text-xs font-bold text-primary/80 uppercase tracking-wider flex items-center gap-1">
+            <span className="material-symbols-outlined text-[14px]">schedule</span>
+            공강 시간 (텍스트)
+          </label>
+          <input
+            name="freeTime"
+            value={form.freeTime}
+            onChange={handleChange}
+            maxLength={100}
+            placeholder="예: 월수금 점심, 화목 오후"
+            className="w-full bg-white dark:bg-[#2d1e14] border-none rounded-2xl h-13 px-5 text-sm font-medium focus:ring-2 focus:ring-primary shadow-sm dark:text-white"
           />
+          <p className="text-[10px] text-gray-400">매칭 시 참고 정보로 활용됩니다.</p>
+        </div>
+
+        {/* 수강 과목 */}
+        <div className="space-y-1">
+          <label className="text-xs font-bold text-primary/80 uppercase tracking-wider flex items-center gap-1">
+            <span className="material-symbols-outlined text-[14px]">menu_book</span>
+            수강 과목
+          </label>
+          <div className="flex gap-2">
+            <input
+              value={courseInput}
+              onChange={(e) => setCourseInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && courseInput.trim()) {
+                  e.preventDefault();
+                  if (form.majorCourses.length < 20) {
+                    setForm((p) => ({ ...p, majorCourses: [...p.majorCourses, courseInput.trim()] }));
+                    setCourseInput('');
+                  }
+                }
+              }}
+              maxLength={50}
+              placeholder="과목명 입력 후 Enter"
+              className="flex-1 bg-white dark:bg-[#2d1e14] border-none rounded-2xl h-13 px-5 text-sm font-medium focus:ring-2 focus:ring-primary shadow-sm dark:text-white"
+            />
+            <button
+              type="button"
+              onClick={() => {
+                if (courseInput.trim() && form.majorCourses.length < 20) {
+                  setForm((p) => ({ ...p, majorCourses: [...p.majorCourses, courseInput.trim()] }));
+                  setCourseInput('');
+                }
+              }}
+              className="px-4 h-13 rounded-2xl bg-primary text-white text-xs font-bold whitespace-nowrap"
+            >
+              추가
+            </button>
+          </div>
+          {form.majorCourses.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {form.majorCourses.map((course, idx) => (
+                <span key={idx} className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 text-xs font-bold rounded-full">
+                  {course}
+                  <button
+                    type="button"
+                    onClick={() => setForm((p) => ({ ...p, majorCourses: p.majorCourses.filter((_, i) => i !== idx) }))}
+                    className="text-blue-400 hover:text-blue-600"
+                  >
+                    <span className="material-symbols-outlined text-[14px]">close</span>
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+          <p className="text-[10px] text-gray-400">같은 수업 듣는 친구와 매칭될 수 있어요! (최대 20개)</p>
         </div>
 
         <div className="space-y-1">
@@ -286,6 +411,61 @@ export default function ProfilePage() {
             placeholder="나를 소개해주세요 (최대 300자)"
             className="w-full bg-white dark:bg-[#2d1e14] border-none rounded-2xl p-5 text-sm font-medium focus:ring-2 focus:ring-primary shadow-sm min-h-[120px] resize-none dark:text-white"
           />
+        </div>
+
+        {/* 관심사 */}
+        <div className="space-y-2">
+          <label className="text-xs font-bold text-primary/80 uppercase tracking-wider flex items-center gap-1">
+            <span className="material-symbols-outlined text-[14px]">interests</span>
+            관심사
+          </label>
+          <div className="flex gap-2">
+            <input
+              value={interestInput}
+              onChange={(e) => setInterestInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && interestInput.trim()) {
+                  e.preventDefault();
+                  if (form.interests.length < 10) {
+                    setForm((p) => ({ ...p, interests: [...p.interests, interestInput.trim()] }));
+                    setInterestInput('');
+                  }
+                }
+              }}
+              maxLength={30}
+              placeholder="예: 운동, 독서, 게임, 음악 등"
+              className="flex-1 bg-white dark:bg-[#2d1e14] border-none rounded-2xl h-13 px-5 text-sm font-medium focus:ring-2 focus:ring-primary shadow-sm dark:text-white"
+            />
+            <button
+              type="button"
+              onClick={() => {
+                if (interestInput.trim() && form.interests.length < 10) {
+                  setForm((p) => ({ ...p, interests: [...p.interests, interestInput.trim()] }));
+                  setInterestInput('');
+                }
+              }}
+              className="px-4 h-13 rounded-2xl bg-primary text-white text-xs font-bold whitespace-nowrap"
+            >
+              추가
+            </button>
+          </div>
+          {form.interests.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {form.interests.map((interest, idx) => (
+                <span key={idx} className="inline-flex items-center gap-1 px-3 py-1.5 bg-purple-50 dark:bg-purple-900/20 text-purple-600 text-xs font-bold rounded-full">
+                  {interest}
+                  <button
+                    type="button"
+                    onClick={() => setForm((p) => ({ ...p, interests: p.interests.filter((_, i) => i !== idx) }))}
+                    className="text-purple-400 hover:text-purple-600"
+                  >
+                    <span className="material-symbols-outlined text-[14px]">close</span>
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+          <p className="text-[10px] text-gray-400">관심사가 비슷한 친구와 매칭될 수 있어요! (최대 10개)</p>
         </div>
 
         {/* 선호 메뉴 */}

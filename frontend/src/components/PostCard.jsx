@@ -10,6 +10,14 @@ const MENU_ICONS = {
 
 const DRINK_CATEGORIES = ['beer', 'soju'];
 
+// purpose별 테마
+const PURPOSE_THEME = {
+  meal:    { icon: '🍚', label: '식사',   gradient: 'from-orange-50 to-pink-50 dark:from-white/5 dark:to-white/10',    badge: 'bg-orange-100 text-orange-600 dark:bg-orange-900/30', border: 'border-orange-200 dark:border-orange-500/20' },
+  cafe:    { icon: '☕', label: '카페/차', gradient: 'from-amber-50 to-yellow-50 dark:from-amber-900/10 dark:to-yellow-900/10', badge: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30',  border: 'border-amber-200 dark:border-amber-500/20' },
+  study:   { icon: '📚', label: '스터디', gradient: 'from-blue-50 to-cyan-50 dark:from-blue-900/10 dark:to-cyan-900/10',     badge: 'bg-blue-100 text-blue-600 dark:bg-blue-900/30',    border: 'border-blue-200 dark:border-blue-500/20' },
+  carpool: { icon: '🚗', label: '카풀',   gradient: 'from-green-50 to-emerald-50 dark:from-green-900/10 dark:to-emerald-900/10', badge: 'bg-green-100 text-green-600 dark:bg-green-900/30', border: 'border-green-200 dark:border-green-500/20' },
+};
+
 const MEAL_TIME_LABEL = {
   breakfast: '아침', lunch: '점심', dinner: '저녁', late_night: '야식',
 };
@@ -55,6 +63,7 @@ export default function PostCard({ post }) {
   const isDrink = categories.some((c) => DRINK_CATEGORIES.includes(c));
   const isEvening = post.mealTime === 'dinner' || post.mealTime === 'late_night';
   const showNeon = isDrink && isEvening;
+  const theme = PURPOSE_THEME[post.purpose] || PURPOSE_THEME.meal;
 
   return (
     <Link to={`/posts/${post._id}`}>
@@ -74,6 +83,13 @@ export default function PostCard({ post }) {
               }}
             >
               <div className="absolute top-2 left-2 flex items-center gap-1">
+                {post.purpose && post.purpose !== 'meal' && (
+                  <span className={`backdrop-blur-sm px-2 py-0.5 rounded-full text-[9px] font-bold text-white ${
+                    { cafe: 'bg-amber-500/90', study: 'bg-blue-500/90', carpool: 'bg-green-500/90' }[post.purpose] || 'bg-black/40'
+                  }`}>
+                    {theme.icon} {theme.label}
+                  </span>
+                )}
                 <span className="bg-black/40 backdrop-blur-sm px-2 py-0.5 rounded-full text-[9px] font-bold text-white">
                   {menuIcon}
                 </span>
@@ -126,11 +142,11 @@ export default function PostCard({ post }) {
         ) : (
           <>
             {/* 사진 없는 카드 — 전체 그라데이션 + 제목/설명 중심 */}
-            <div className={`relative p-4 min-h-[180px] bg-gradient-to-br ${showNeon ? 'from-purple-100 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20' : 'from-orange-50 to-pink-50 dark:from-white/5 dark:to-white/10'} flex flex-col justify-between`}>
+            <div className={`relative p-4 min-h-[180px] bg-gradient-to-br ${showNeon ? 'from-purple-100 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20' : theme.gradient} flex flex-col justify-between`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1">
-                  <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${showNeon ? 'bg-purple-500/20 text-purple-600' : 'bg-primary/20 text-primary'}`}>
-                    {MEAL_TIME_LABEL[post.mealTime] || '밥약속'} · {post.participantsCount}명
+                  <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${showNeon ? 'bg-purple-500/20 text-purple-600' : theme.badge}`}>
+                    {theme.icon} {MEAL_TIME_LABEL[post.mealTime] || theme.label} · {post.participantsCount}명
                   </span>
                   {post.timetableMatch && (
                     <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-green-100 dark:bg-green-900/30 text-green-600 flex items-center gap-0.5">

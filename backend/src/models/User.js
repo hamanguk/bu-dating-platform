@@ -74,6 +74,31 @@ const userSchema = new mongoose.Schema(
       type: [[Boolean]],
       default: defaultTimetable,
     },
+    // 공강 시간대 (자유 텍스트 — "월수금 점심", "화목 오후" 등)
+    freeTime: {
+      type: String,
+      maxlength: 100,
+      default: '',
+    },
+    // 수강 과목 목록 (매칭 알고리즘 활용)
+    majorCourses: {
+      type: [String],
+      default: [],
+    },
+    // 계정 유형: 일반 유저 vs 비즈니스 (주변 식당/카페 등)
+    accountType: {
+      type: String,
+      enum: ['general', 'business'],
+      default: 'general',
+    },
+    // 비즈니스 계정 추가 정보
+    businessInfo: {
+      businessName: { type: String, trim: true, default: '' },
+      category: { type: String, enum: ['restaurant', 'cafe', 'bar', 'etc', ''], default: '' },
+      address: { type: String, trim: true, default: '' },
+      phone: { type: String, trim: true, default: '' },
+      description: { type: String, maxlength: 500, default: '' },
+    },
     profileImage: {
       type: String,
       default: '',

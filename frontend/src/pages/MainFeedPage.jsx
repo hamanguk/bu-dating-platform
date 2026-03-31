@@ -15,6 +15,7 @@ export default function MainFeedPage() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [purposeFilter, setPurposeFilter] = useState('all');
   const touchStartY = useRef(0);
 
   // 공강 매칭 유저
@@ -32,10 +33,12 @@ export default function MainFeedPage() {
       .finally(() => setMatchLoading(false));
   }, []);
 
-  const fetchPosts = useCallback(async (pageNum = 1) => {
+  const fetchPosts = useCallback(async (pageNum = 1, purpose = purposeFilter) => {
     setLoading(true);
     try {
-      const { data } = await getPosts({ page: pageNum, limit: 10 });
+      const params = { page: pageNum, limit: 10 };
+      if (purpose !== 'all') params.purpose = purpose;
+      const { data } = await getPosts(params);
       if (pageNum === 1) {
         setPosts(data.posts);
       } else {
@@ -47,7 +50,7 @@ export default function MainFeedPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [purposeFilter]);
 
   useEffect(() => {
     setPage(1);
@@ -120,14 +123,40 @@ export default function MainFeedPage() {
           </div>
         </div>
 
-        {/* 밥약속 제안 버튼 */}
-        <div className="sticky top-[60px] z-30 px-4 py-2 bg-white/80 dark:bg-[#1A0F05]/80 backdrop-blur-sm">
+        {/* 목적별 필터 + 제안 버튼 */}
+        <div className="sticky top-[60px] z-30 px-4 py-2 bg-white/80 dark:bg-[#1A0F05]/80 backdrop-blur-sm space-y-2">
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
+            {[
+              { value: 'all', label: '전체', icon: 'grid_view' },
+              { value: 'meal', label: '식사', icon: '🍚' },
+              { value: 'cafe', label: '카페/차', icon: '☕' },
+              { value: 'study', label: '스터디', icon: '📚' },
+              { value: 'carpool', label: '카풀', icon: '🚗' },
+            ].map(({ value, label, icon }) => (
+              <button
+                key={value}
+                onClick={() => { setPurposeFilter(value); setPage(1); fetchPosts(1, value); }}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
+                  purposeFilter === value
+                    ? 'bg-primary text-white shadow-md'
+                    : 'bg-white dark:bg-[#2d1e14] text-gray-500 dark:text-gray-400 shadow-sm'
+                }`}
+              >
+                {value === 'all' ? (
+                  <span className="material-symbols-outlined text-[14px]">{icon}</span>
+                ) : (
+                  <span className="text-sm">{icon}</span>
+                )}
+                {label}
+              </button>
+            ))}
+          </div>
           <button
             onClick={() => navigate('/create-post')}
             className="w-full h-14 rounded-2xl bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold text-lg flex items-center justify-center gap-2 shadow-md active:scale-[0.97] transition-transform duration-150"
           >
             <span className="material-symbols-outlined text-[22px]">edit_square</span>
-            오늘 밥 약속 제안하기
+            오늘 약속 제안하기
           </button>
         </div>
 

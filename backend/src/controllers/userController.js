@@ -25,7 +25,8 @@ const generateRandomNickname = () => {
 exports.updateProfile = async (req, res) => {
   try {
     const { department, studentId, mbti, gender, bio, interests,
-            foodPreferences, diningStyle, timetable, isAnonymous, nickname } = req.body;
+            foodPreferences, diningStyle, timetable, isAnonymous, nickname,
+            freeTime, majorCourses, accountType, businessInfo } = req.body;
 
     const updateData = {};
     if (department !== undefined) updateData.department = department.trim();
@@ -39,6 +40,18 @@ exports.updateProfile = async (req, res) => {
     if (timetable !== undefined) updateData.timetable = timetable;
     if (isAnonymous !== undefined) updateData.isAnonymous = Boolean(isAnonymous);
     if (nickname !== undefined) updateData.nickname = nickname.trim() || null;
+    if (freeTime !== undefined) updateData.freeTime = freeTime.slice(0, 100);
+    if (majorCourses !== undefined) updateData.majorCourses = Array.isArray(majorCourses) ? majorCourses.slice(0, 20) : [];
+    if (accountType !== undefined && ['general', 'business'].includes(accountType)) updateData.accountType = accountType;
+    if (businessInfo !== undefined && typeof businessInfo === 'object') {
+      updateData.businessInfo = {
+        businessName: (businessInfo.businessName || '').slice(0, 100),
+        category: ['restaurant', 'cafe', 'bar', 'etc', ''].includes(businessInfo.category) ? businessInfo.category : '',
+        address: (businessInfo.address || '').slice(0, 200),
+        phone: (businessInfo.phone || '').slice(0, 20),
+        description: (businessInfo.description || '').slice(0, 500),
+      };
+    }
 
     // 닉네임이 비어있으면 랜덤 닉네임 부여
     const currentUser = await User.findById(req.user._id);
@@ -133,8 +146,8 @@ exports.getUserProfile = async (req, res) => {
 
     // 본인이면 전체 정보, 타인이면 닉네임/MBTI/성별만
     const selectFields = isMe
-      ? 'nickname department mbti gender bio interests foodPreferences diningStyle timetable profileImage createdAt'
-      : 'nickname mbti gender bio foodPreferences diningStyle profileImage createdAt';
+      ? 'nickname department mbti gender bio interests foodPreferences diningStyle timetable freeTime majorCourses accountType businessInfo profileImage createdAt'
+      : 'nickname mbti gender bio foodPreferences diningStyle accountType businessInfo profileImage createdAt';
 
     const user = await User.findById(req.params.id).select(selectFields);
     if (!user) {
