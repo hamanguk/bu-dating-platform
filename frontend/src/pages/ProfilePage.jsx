@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { updateProfile, checkNickname } from '../services/api';
 import TimetableSelector from '../components/TimetableSelector';
-import TimetableImport from '../components/TimetableImport';
 
 const MBTI_LIST = ['INTJ','INTP','ENTJ','ENTP','INFJ','INFP','ENFJ','ENFP',
                    'ISTJ','ISFJ','ESTJ','ESFJ','ISTP','ISFP','ESTP','ESFP'];
@@ -46,7 +45,6 @@ export default function ProfilePage() {
   });
   const [courseInput, setCourseInput] = useState('');
   const [interestInput, setInterestInput] = useState('');
-  const [timetableMode, setTimetableMode] = useState('import'); // 'import' | 'manual'
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -271,62 +269,15 @@ export default function ProfilePage() {
               </span>
             )}
           </div>
-
-          {/* 에타 가져오기 / 직접 입력 탭 */}
-          <div className="flex bg-gray-100 dark:bg-white/5 rounded-xl p-1">
-            <button
-              type="button"
-              onClick={() => setTimetableMode('import')}
-              className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 ${
-                timetableMode === 'import'
-                  ? 'bg-white dark:bg-[#3d2e24] text-primary shadow-sm'
-                  : 'text-gray-400'
-              }`}
-            >
-              <span className="material-symbols-outlined text-[14px]">download</span>
-              에타에서 가져오기
-            </button>
-            <button
-              type="button"
-              onClick={() => setTimetableMode('manual')}
-              className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 ${
-                timetableMode === 'manual'
-                  ? 'bg-white dark:bg-[#3d2e24] text-primary shadow-sm'
-                  : 'text-gray-400'
-              }`}
-            >
-              <span className="material-symbols-outlined text-[14px]">edit</span>
-              직접 입력
-            </button>
-          </div>
-
-          {timetableMode === 'import' ? (
-            <TimetableImport
-              onImport={({ timetable, majorCourses }) => {
-                setForm((prev) => ({
-                  ...prev,
-                  timetable,
-                  majorCourses: [...new Set([...prev.majorCourses, ...majorCourses])].slice(0, 20),
-                }));
-                setTimetableMode('manual'); // 적용 후 수동 모드로 전환 (미세 조정 가능)
-                setSuccess('시간표를 가져왔습니다! 필요하면 아래에서 수정하세요.');
-                setTimeout(() => setSuccess(''), 4000);
-              }}
-              onFallback={() => setTimetableMode('manual')}
-            />
-          ) : (
-            <>
-              {!hasFreePeriod && (
-                <p className="text-xs text-primary/80">
-                  공강 시간을 선택해야 밥 친구 매칭이 시작됩니다!
-                </p>
-              )}
-              <TimetableSelector
-                timetable={form.timetable}
-                onChange={(t) => setForm((prev) => ({ ...prev, timetable: t }))}
-              />
-            </>
+          {!hasFreePeriod && (
+            <p className="text-xs text-primary/80">
+              공강 시간을 선택해야 밥 친구 매칭이 시작됩니다!
+            </p>
           )}
+          <TimetableSelector
+            timetable={form.timetable}
+            onChange={(t) => setForm((prev) => ({ ...prev, timetable: t }))}
+          />
         </div>
 
         {/* 공강 시간 텍스트 */}

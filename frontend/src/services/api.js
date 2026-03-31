@@ -82,10 +82,6 @@ export const createEvent = (formData) =>
 export const deleteEvent = (id) => api.delete(`/events/${id}`);
 export const toggleEventLike = (id) => api.post(`/events/${id}/like`);
 
-// Timetable (에브리타임 크롤링)
-export const parseTimetable = (url) => api.post('/timetable/parse', { url });
-export const saveTimetable = (data) => api.post('/timetable/save', data);
-
 // Reports
 export const createReport = (data) => api.post('/reports', data);
 

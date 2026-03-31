@@ -1,0 +1,40 @@
+{
+  "expo": {
+    "name": "캠퍼스 데이트",
+    "slug": "campus-date",
+    "scheme": "campusdate",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#fff0f3"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.yourschool.campusdate"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ff6b81"
+      },
+      "package": "com.yourschool.campusdate"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-image-picker",
+      "expo-asset",
+      "expo-font"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "YOUR_EAS_PROJECT_ID"
+      }
+    }
+  }
+}

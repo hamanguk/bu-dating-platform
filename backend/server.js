@@ -16,7 +16,6 @@ const reportRoutes = require('./src/routes/reports');
 const adminRoutes = require('./src/routes/admin');
 const notificationRoutes = require('./src/routes/notifications');
 const eventRoutes = require('./src/routes/events');
-const timetableRoutes = require('./src/routes/timetable');
 const { initSocket } = require('./src/socket/chatSocket');
 const { generalLimiter } = require('./src/middleware/rateLimiter');
 
@@ -76,7 +75,6 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/events', eventRoutes);
-app.use('/api/timetable', timetableRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'OK', timestamp: new Date() }));

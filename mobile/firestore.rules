@@ -1,0 +1,139 @@
+// firestore.rules
+// Firebase 콘솔 > Firestore > 규칙 탭에 전체 내용 붙여넣기 후 게시
+// 또는: firebase deploy --only firestore:rules
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ═══════════════════════════════════════════════════════════════
+    // 헬퍼 함수
+    // ═══════════════════════════════════════════════════════════════
+
+    // 현재 요청이 인증된 사용자인지 확인
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // 현재 로그인한 사용자가 해당 uid 문서의 소유자인지 확인
+    function isOwner(uid) {
+      return isAuthenticated() && request.auth.uid == uid;
+    }
+
+    // matches 문서의 users 배열에 현재 사용자가 포함되는지 확인
+    function isMatchParticipant(matchData) {
+      return isAuthenticated() && request.auth.uid in matchData.users;
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // users 컬렉션
+    // ═══════════════════════════════════════════════════════════════
+    match /users/{uid} {
+
+      // 읽기: 인증된 모든 사용자가 타인 프로필 조회 가능
+      // (탐색/추천 기능에서 다른 유저 프로필 조회 필요)
+      allow read: if isAuthenticated();
+
+      // 생성: 본인만 자신의 문서를 생성 가능
+      // + 문서 내 uid 필드가 실제 Auth uid 와 일치해야 함 (위조 방지)
+      allow create: if isOwner(uid)
+                    && request.resource.data.uid == request.auth.uid
+                    && request.resource.data.isProfileComplete == false;
+
+      // 수정: 본인 문서만 수정 가능
+      // + uid, email, createdAt 필드 변경 불가
+      // + 허용된 필드만 변경 가능
+      allow update: if isOwner(uid)
+                    && request.resource.data.uid   == resource.data.uid
+                    && request.resource.data.email == resource.data.email
+                    && onlyAllowedUserFields();
+
+      // 삭제: 클라이언트 직접 삭제 불가
+      // (계정 탈퇴는 Cloud Function 으로 처리 권장)
+      allow delete: if false;
+    }
+
+    // 수정 가능한 필드 목록 (허용 외 필드 변경 시 요청 거부)
+    function onlyAllowedUserFields() {
+      let allowed = [
+        'nickname', 'age', 'gender', 'bio',
+        'profileImages', 'isProfileComplete', 'lastActive'
+      ];
+      return request.resource.data.diff(resource.data)
+               .affectedKeys()
+               .hasOnly(allowed);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // likes 컬렉션
+    // ═══════════════════════════════════════════════════════════════
+    match /likes/{likeId} {
+
+      // 생성: fromUid 가 본인이어야 함 (타인을 사칭한 좋아요 방지)
+      allow create: if isAuthenticated()
+                    && request.resource.data.fromUid == request.auth.uid;
+
+      // 읽기: 본인이 보내거나 받은 like 만 읽을 수 있음
+      allow read: if isAuthenticated()
+                  && (resource.data.fromUid == request.auth.uid
+                      || resource.data.toUid == request.auth.uid);
+
+      // 수정/삭제 불허 (like 는 불변)
+      allow update, delete: if false;
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // matches 컬렉션
+    // ═══════════════════════════════════════════════════════════════
+    match /matches/{matchId} {
+
+      // 읽기: match 의 users 배열에 본인이 포함된 경우만 허용
+      allow read: if isMatchParticipant(resource.data);
+
+      // 수정: 참여자만 lastMessage, lastMessageAt 갱신 가능
+      allow update: if isMatchParticipant(resource.data)
+                    && request.resource.data.diff(resource.data)
+                         .affectedKeys()
+                         .hasOnly(['lastMessage', 'lastMessageAt']);
+
+      // 생성: 보안상 클라이언트 직접 생성 불허
+      // → 양방향 like 확인 후 Cloud Function 에서 생성 권장
+      allow create: if false;
+
+      // 삭제 불허
+      allow delete: if false;
+
+      // ── messages 서브컬렉션 ──────────────────────────────────────
+      match /messages/{messageId} {
+
+        // match 참여자인지 확인하는 헬퍼
+        function isParentMatchMember() {
+          return request.auth.uid in
+            get(/databases/$(database)/documents/matches/$(matchId)).data.users;
+        }
+
+        // 읽기: 부모 match의 참여자만 허용
+        allow read: if isAuthenticated()
+                    && isParentMatchMember();
+
+        // 생성: 참여자 + senderId == 본인 + type은 "text" 또는 "image"
+        allow create: if isAuthenticated()
+                      && isParentMatchMember()
+                      && request.resource.data.senderId == request.auth.uid
+                      && request.resource.data.type in ['text', 'image'];
+
+        // 수정: readBy 배열 업데이트만 허용 (메시지 읽음 처리)
+        // 참여자만 수정 가능, readBy 필드만 변경 가능
+        allow update: if isAuthenticated()
+                      && isParentMatchMember()
+                      && request.resource.data.diff(resource.data)
+                           .affectedKeys()
+                           .hasOnly(['readBy']);
+
+        // 삭제 불허 (채팅 기록 보존)
+        allow delete: if false;
+      }
+    }
+
+  }
+}
