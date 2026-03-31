@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getPosts, getMatches } from '../services/api';
+import { getPosts, getMatches, createOrGetRoom } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import PostCard from '../components/PostCard';
 import { PostCardSkeleton } from '../components/Skeleton';
@@ -192,7 +192,14 @@ export default function MainFeedPage() {
               {matchUsers.map((u) => (
                 <button
                   key={u._id}
-                  onClick={() => navigate(`/users/${u._id}`)}
+                  onClick={async () => {
+                    try {
+                      const { data } = await createOrGetRoom({ type: 'direct', targetUserId: u._id });
+                      navigate(`/chat/${data._id}`);
+                    } catch {
+                      navigate(`/chat`);
+                    }
+                  }}
                   className="flex-shrink-0 w-[140px] bg-white dark:bg-[#2d1e14] rounded-2xl p-3 shadow-card border border-gray-100/60 dark:border-white/5 hover:shadow-card-hover transition-all"
                 >
                   <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 mx-auto mb-2 flex items-center justify-center">
@@ -207,6 +214,10 @@ export default function MainFeedPage() {
                       메뉴 {u.foodOverlap}개 겹침
                     </span>
                   )}
+                  <span className="block mt-1.5 mx-auto w-fit px-2.5 py-1 bg-primary/10 text-primary text-[9px] font-bold rounded-full flex items-center gap-0.5">
+                    <span className="material-symbols-outlined text-[11px]">chat</span>
+                    채팅하기
+                  </span>
                 </button>
               ))}
             </div>
