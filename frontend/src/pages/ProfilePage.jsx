@@ -298,10 +298,13 @@ export default function ProfilePage() {
         </div>
 
         {/* 수강 과목 */}
-        <div className="space-y-1">
-          <label className="text-xs font-bold text-primary/80 uppercase tracking-wider flex items-center gap-1">
+        <div className="space-y-2 bg-white dark:bg-[#2d1e14] rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-white/5">
+          <label className="text-xs font-bold text-primary uppercase tracking-wider flex items-center gap-1">
             <span className="material-symbols-outlined text-[14px]">menu_book</span>
             수강 과목
+            {form.majorCourses.length > 0 && (
+              <span className="text-[10px] text-gray-400 font-normal ml-1">({form.majorCourses.length}/20)</span>
+            )}
           </label>
           <div className="flex gap-2">
             <input
@@ -318,7 +321,7 @@ export default function ProfilePage() {
               }}
               maxLength={50}
               placeholder="과목명 입력 후 Enter"
-              className="flex-1 bg-white dark:bg-[#2d1e14] border-none rounded-2xl h-13 px-5 text-sm font-medium focus:ring-2 focus:ring-primary shadow-sm dark:text-white"
+              className="flex-1 bg-gray-50 dark:bg-white/5 border-none rounded-xl h-11 px-4 text-sm font-medium focus:ring-2 focus:ring-primary dark:text-white"
             />
             <button
               type="button"
@@ -328,28 +331,29 @@ export default function ProfilePage() {
                   setCourseInput('');
                 }
               }}
-              className="px-4 h-13 rounded-2xl bg-primary text-white text-xs font-bold whitespace-nowrap"
+              className="px-4 h-11 rounded-xl bg-primary text-white text-xs font-bold whitespace-nowrap active:scale-95 transition-transform"
             >
               추가
             </button>
           </div>
-          {form.majorCourses.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mt-2">
+          {form.majorCourses.length > 0 ? (
+            <div className="flex flex-wrap gap-1.5">
               {form.majorCourses.map((course, idx) => (
-                <span key={idx} className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 text-xs font-bold rounded-full">
+                <span key={idx} className="inline-flex items-center gap-1 pl-3 pr-1.5 py-1.5 bg-primary/10 dark:bg-primary/20 text-primary text-xs font-bold rounded-full">
                   {course}
                   <button
                     type="button"
                     onClick={() => setForm((p) => ({ ...p, majorCourses: p.majorCourses.filter((_, i) => i !== idx) }))}
-                    className="text-blue-400 hover:text-blue-600"
+                    className="w-5 h-5 rounded-full bg-primary/20 dark:bg-primary/30 flex items-center justify-center hover:bg-primary/40 transition-colors"
                   >
-                    <span className="material-symbols-outlined text-[14px]">close</span>
+                    <span className="material-symbols-outlined text-[12px]">close</span>
                   </button>
                 </span>
               ))}
             </div>
+          ) : (
+            <p className="text-[10px] text-gray-400 text-center py-2">같은 수업 듣는 친구와 매칭될 수 있어요!</p>
           )}
-          <p className="text-[10px] text-gray-400">같은 수업 듣는 친구와 매칭될 수 있어요! (최대 20개)</p>
         </div>
 
         <div className="space-y-1">
