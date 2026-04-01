@@ -9,9 +9,7 @@ export default function ProtectedRoute({ children, adminOnly = false }) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background-light dark:bg-background-dark">
         <div className="flex flex-col items-center gap-3">
-          <span className="material-symbols-outlined text-primary text-5xl animate-pulse">
-            shield_person
-          </span>
+          <img src="/logo.svg" alt="혼밥친구" className="w-16 h-16 rounded-2xl animate-pulse" />
           <p className="text-sm text-primary font-semibold">혼밥친구</p>
         </div>
       </div>

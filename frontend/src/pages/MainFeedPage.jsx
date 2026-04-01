@@ -86,7 +86,7 @@ export default function MainFeedPage() {
         {/* 헤더 */}
         <div className="sticky top-0 z-40 flex items-center px-6 py-4 justify-between bg-white/80 dark:bg-[#1A0F05]/80 backdrop-blur-md border-b border-gray-200/50 dark:border-white/5">
           <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary text-[28px]">restaurant</span>
+            <img src="/logo.svg" alt="혼밥친구" className="w-8 h-8 rounded-lg" />
             <h1 className="text-xl font-bold tracking-tight dark:text-white">혼밥친구</h1>
           </div>
           <div className="flex items-center gap-2">

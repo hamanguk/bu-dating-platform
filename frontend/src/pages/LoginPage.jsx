@@ -111,8 +111,8 @@ export default function LoginPage() {
       <div className="relative z-10 flex flex-col items-center w-full max-w-sm gap-10">
         {/* 로고 */}
         <div className="flex flex-col items-center gap-3">
-          <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-xl shadow-primary/30">
-            <span className="material-symbols-outlined text-white text-4xl">restaurant</span>
+          <div className="w-24 h-24 rounded-3xl shadow-xl shadow-primary/30 overflow-hidden">
+            <img src="/logo.svg" alt="혼밥친구" className="w-full h-full" />
           </div>
           <div className="text-center">
             <h1 className="text-3xl font-extrabold text-[#1d0c0f] dark:text-white tracking-tight">

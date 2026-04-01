@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="mainGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1B2A4A"/>
+      <stop offset="50%" style="stop-color:#2C3E6B"/>
+      <stop offset="100%" style="stop-color:#E8845C"/>
+    </linearGradient>
+    <linearGradient id="bowlGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2C3E6B"/>
+      <stop offset="100%" style="stop-color:#E8845C"/>
+    </linearGradient>
+    <linearGradient id="steamGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" style="stop-color:#E8845C;stop-opacity:0.8"/>
+      <stop offset="100%" style="stop-color:#F4A67A;stop-opacity:0.3"/>
+    </linearGradient>
+  </defs>
+
+  <!-- White background circle -->
+  <circle cx="256" cy="256" r="256" fill="#FFFFFF"/>
+
+  <!-- Speech bubble body (rounded rectangle) -->
+  <rect x="96" y="100" width="320" height="240" rx="48" ry="48" fill="url(#mainGrad)"/>
+
+  <!-- Speech bubble tail -->
+  <path d="M160 340 L130 390 L200 340" fill="#2C3E6B"/>
+
+  <!-- Bowl shape inside bubble -->
+  <ellipse cx="256" cy="260" rx="110" ry="45" fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round"/>
+  <path d="M146 260 Q156 330 256 330 Q356 330 366 260" fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round"/>
+
+  <!-- Chopsticks -->
+  <line x1="230" y1="165" x2="210" y2="250" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round"/>
+  <line x1="250" y1="165" x2="270" y2="250" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round"/>
+
+  <!-- Steam lines -->
+  <path d="M200 155 Q195 140 200 125 Q205 110 200 95" fill="none" stroke="url(#steamGrad)" stroke-width="5" stroke-linecap="round"/>
+  <path d="M256 148 Q251 133 256 118 Q261 103 256 88" fill="none" stroke="url(#steamGrad)" stroke-width="5" stroke-linecap="round"/>
+  <path d="M312 155 Q307 140 312 125 Q317 110 312 95" fill="none" stroke="url(#steamGrad)" stroke-width="5" stroke-linecap="round"/>
+
+  <!-- Small smile/dots on bowl for friendly feel -->
+  <circle cx="226" cy="275" r="6" fill="#FFFFFF" opacity="0.9"/>
+  <circle cx="286" cy="275" r="6" fill="#FFFFFF" opacity="0.9"/>
+  <path d="M238 290 Q256 305 274 290" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" opacity="0.9"/>
+</svg>
