@@ -24,14 +24,15 @@
 ### 주요 기능
 
 - **커스텀 닉네임 시스템** — 나만의 별명 설정 + 중복 확인, 미설정 시 랜덤 닉네임 자동 부여
-- **공강 시간 매칭** — 5x9 시간표 기반, 현재 공강인 친구를 자동 추천
+- **공강 시간 매칭 (09:00~21:00)** — 5x13 시간표 기반, 현재 공강인 친구를 자동 추천 + 저녁 시간대 포함
+- **실시간 공강 친구** — 홈 화면 상단에 지금 공강인 유저 가로 스크롤 노출, 카드 클릭으로 바로 1:1 채팅
+- **공강 겹침 우선 정렬** — 나와 공강 시간이 겹치는 게시물이 피드 최상단에 노출 + [⏰ 공강 일치!] 배지
+- **간소화된 게시물 작성** — 제목 + 내용(선택) + 사진(선택)만으로 빠르게 약속 제안
 - **메뉴 취향 매칭** — 한식/중식/일식/양식/치킨/피자/분식/카페/맥주/소주 중 겹치는 메뉴로 점수 산정
-- **밥약속 게시판** — 메뉴 카테고리(복수 선택) + 식사 시간(아침/점심/저녁/야식), 사진은 선택 사항
-- **사진 없는 게시물 UI** — 메뉴별 그라데이션 배경 + 이모지로 예쁜 카드 자동 생성
-- **저녁+술 네온 테마** — 저녁/야식 + 맥주/소주 조합 시 보라색 글로우 효과 자동 적용
 - **실시간 채팅** — Socket.io 기반 1:1/그룹 채팅 + 읽음 표시 + 채팅방 나가기(시스템 메시지)
+- **프로필 직접 채팅** — 게시물 없이도 공강 유저 카드에서 바로 1:1 채팅 시작
 - **학교 이메일 인증** — `@bu.ac.kr` 도메인만 허용하는 Google OAuth 로그인
-- **인앱 브라우저 대응** — 카카오톡/인스타/에타 등 앱별 분기 처리 (카톡 iOS는 소프트 팁, 나머지는 모달)
+- **인앱 브라우저 대응** — 카카오톡/인스타/에타 등 앱별 분기 처리
 - **푸시 알림** — FCM + Browser Notification API로 새 메시지 알림
 - **PWA 지원** — 홈 화면 추가, iOS/Android 설치 배너
 - **관리자 대시보드** — 유저 관리, 신고 처리, 통계 조회
@@ -81,10 +82,10 @@ campus-date/
 ├── frontend/                    # React SPA (PWA)
 │   ├── src/
 │   │   ├── components/
-│   │   │   ├── BottomNav.jsx    # 하단 네비게이션
-│   │   │   ├── PostCard.jsx     # 게시물 카드 (사진/그라데이션 분기)
+│   │   │   ├── BottomNav.jsx    # 하단 네비게이션 [매칭, 혜택, 홈(중앙 강조), 채팅, 내정보]
+│   │   │   ├── PostCard.jsx     # 게시물 카드 (사진/그라데이션 분기 + 공강 배지)
 │   │   │   ├── ProtectedRoute.jsx # 인증 + 닉네임 가드
-│   │   │   ├── TimetableSelector.jsx # 에브리타임 스타일 시간표 입력
+│   │   │   ├── TimetableSelector.jsx # 시간표 입력 (월~금, 09:00~21:00, 13교시)
 │   │   │   ├── Skeleton.jsx     # 로딩 스켈레톤 UI
 │   │   │   ├── EmptyState.jsx   # 빈 상태 화면
 │   │   │   └── PageTransition.jsx # 페이지 전환 애니메이션
@@ -92,12 +93,14 @@ campus-date/
 │   │   │   └── AuthContext.jsx  # 인증 + 알림 상태 관리
 │   │   ├── pages/
 │   │   │   ├── LoginPage.jsx    # 로그인 + 앱별 인앱 브라우저 분기 처리
-│   │   │   ├── MainFeedPage.jsx # 메인 피드 (2열 그리드 + 공강 매칭)
-│   │   │   ├── CreatePostPage.jsx # 밥약속 작성 (사진 선택, 미리보기)
-│   │   │   ├── PostDetailPage.jsx # 게시물 상세 (이미지/그라데이션 폴백)
+│   │   │   ├── MainFeedPage.jsx # 메인 피드 (공강 매칭 우선 정렬 + 실시간 공강 친구)
+│   │   │   ├── CreatePostPage.jsx # 약속 제안 (제목 + 내용 + 사진)
+│   │   │   ├── PostDetailPage.jsx # 게시물 상세
+│   │   │   ├── MatchPage.jsx    # 매칭 페이지
+│   │   │   ├── BenefitsPage.jsx # 혜택/이벤트 페이지
 │   │   │   ├── ChatListPage.jsx # 채팅 목록 (실시간 업데이트)
 │   │   │   ├── ChatPage.jsx     # 채팅방 (나가기 메뉴 + 확인 모달)
-│   │   │   ├── ProfilePage.jsx  # 프로필 (닉네임 + MBTI + 성별 + 시간표)
+│   │   │   ├── ProfilePage.jsx  # 프로필 (닉네임 + MBTI + 성별 + 시간표 직접 입력)
 │   │   │   └── AdminPage.jsx    # 관리자 대시보드
 │   │   └── services/
 │   │       ├── api.js           # Axios API 클라이언트
@@ -112,17 +115,19 @@ campus-date/
 ├── backend/                     # Express API 서버
 │   ├── src/
 │   │   ├── models/
-│   │   │   ├── User.js          # 닉네임 + 시간표(5x9) + 음식취향
-│   │   │   ├── Post.js          # 메뉴카테고리(배열) + 식사시간
+│   │   │   ├── User.js          # 닉네임 + 시간표(5x13) + 음식취향
+│   │   │   ├── Post.js          # 제목 + 내용(선택) + 이미지(선택)
+│   │   │   ├── Event.js         # 비즈니스 이벤트/혜택
 │   │   │   ├── Room.js
 │   │   │   ├── Message.js
 │   │   │   └── Report.js
 │   │   ├── controllers/
 │   │   │   ├── authController.js    # 구글 로그인 + 닉네임 포함 응답
-│   │   │   ├── postController.js    # 닉네임+MBTI+성별만 populate
+│   │   │   ├── postController.js    # 공강 겹침 우선 정렬 + 배지
 │   │   │   ├── userController.js    # 랜덤 닉네임 생성 + 중복 확인
-│   │   │   ├── chatController.js    # 채팅방 CRUD + 나가기 (시스템 메시지 + 소켓 브로드캐스트)
-│   │   │   ├── matchController.js   # KST 기반 공강 매칭 알고리즘
+│   │   │   ├── chatController.js    # 채팅방 CRUD + 1:1 다이렉트 채팅 + 나가기
+│   │   │   ├── matchController.js   # KST 기반 실시간 공강 매칭 (13교시)
+│   │   │   ├── eventController.js   # 비즈니스 이벤트 관리
 │   │   │   └── adminController.js
 │   │   ├── routes/
 │   │   ├── middleware/
@@ -130,6 +135,7 @@ campus-date/
 │   │   └── config/
 │   └── server.js
 │
+├── mobile/                      # Expo React Native 앱 (개발 중)
 └── README.md
 ```
 
@@ -145,9 +151,11 @@ campus-date/
   nickname,                           // 유저 고유 식별자 (화면 노출용)
   department,                         // DB 저장만, 타 유저에게 비노출
   gender, mbti, bio,                  // 프로필 (닉네임/MBTI/성별만 공개)
-  timetable: Boolean[5][9],           // 공강 시간표 (월~금, 1~9교시)
+  timetable: Boolean[5][13],          // 공강 시간표 (월~금, 09:00~21:00)
+  majorCourses: [String],             // 수강 과목 (매칭용, 최대 20개)
   foodPreferences: [String],          // 선호 메뉴 (복수)
   diningStyle: 'quiet' | 'chatty',   // 식사 스타일
+  interests: [String],                // 관심사 (최대 10개)
   profileComplete: Boolean,           // 프로필 완성 여부 (시간표 필수)
   role: 'user' | 'admin'
 }
@@ -158,14 +166,12 @@ campus-date/
 ```javascript
 {
   author: ObjectId -> User,
-  title, description,
-  menuCategory: [String],             // 복수 선택: korean, chinese, japanese, western,
-                                      //   cafe, chicken, pizza, snack, beer, soju, other
-  mealTime: 'breakfast' | 'lunch' | 'dinner' | 'late_night',
-  participantsCount: 2 | 3 | 4,
-  genderPreference: 'male' | 'female' | 'any',
-  images: [String],                   // 선택 사항 — 없으면 메뉴별 그라데이션 폴백
+  title,                                // 필수
+  description,                          // 선택 — 시간, 장소, 하고 싶은 말
+  images: [String],                     // 선택 — 없으면 기본 그라데이션 배경
+  purpose: 'meal' | 'cafe' | 'study' | 'carpool',
   likes: [ObjectId -> User]
+  // 공강 매칭은 작성자 프로필의 timetable 기반으로 서버에서 자동 계산
 }
 ```
 
@@ -194,6 +200,7 @@ MBTI                   학과
 백석대 인증 뱃지        프로필 사진
 자기소개               이메일
 선호 메뉴 / 식사 스타일
+관심사 / 수강 과목
 ```
 
 - 모든 게시물, 채팅, 매칭 화면에서 `닉네임 (MBTI / 성별)` 형식으로 통일
@@ -207,21 +214,22 @@ MBTI                   학과
 ### 실시간 매칭 (지금 공강인 친구)
 
 ```
-현재 KST 시간 -> 요일(월~금) + 교시(1~9) 계산
+현재 KST 시간 -> 요일(월~금) + 교시(1~13, 09:00~21:00) 계산
   -> User.timetable[요일][교시] === true 인 유저 필터
   -> 내 foodPreferences와 겹치는 메뉴 수로 정렬
-  -> 상위 매칭 유저 반환
+  -> 상위 매칭 유저 반환 -> 카드 클릭으로 바로 1:1 채팅
 
 * 주말: 모든 유저 공강 취급
-* 18시 이후: 술 한잔? 뱃지 표시
+* 18시 이후: 술 한잔? 뱃지 표시 + 10~13교시(저녁) 매칭 활성화
 ```
 
-### 게시물 공강 겹침 배지
+### 게시물 공강 겹침 정렬 + 배지
 
 ```
-게시물 리스트/상세 조회 시:
-  -> 글 작성자의 timetable과 내 timetable 비교 (서버 측)
+게시물 리스트 조회 시:
+  -> 글 작성자의 timetable과 내 timetable 비교 (서버 측, 13교시 대응)
   -> 겹치는 공강 시간대가 1개 이상이면 timetableMatch = true
+  -> 공강 겹치는 게시물을 최상단에 우선 정렬
   -> 프론트에서 [⏰ 공강 일치!] 배지 표시
 
 * timetable 원본은 프론트에 전달하지 않음 (프라이버시 보호)
@@ -256,20 +264,29 @@ MBTI                   학과
 
 ---
 
-## 게시물 카드 디자인
+## 게시물 시스템
 
-### 사진 있는 게시물
-- 4:3 비율 커버 이미지 + 하단 그라데이션 오버레이
-- 메뉴 이모지 뱃지 + 좋아요 버튼
+### 작성 화면 (메신저 스타일)
 
-### 사진 없는 게시물
-- 이미지 영역 없이 카드 전체를 오렌지-핑크 그라데이션 배경으로 채움
-- 제목을 크게 + 메뉴 이모지 포인트 + 설명 2줄 노출
-- 저녁+술 조합 시 보라색 네온 그라데이션으로 자동 전환
+- **제목** (필수) — 랜덤 placeholder: "학식 같이 먹을 사람!", "자취방 근처 번개!" 등 7종
+- **내용** (선택) — "구체적인 시간, 장소, 하고 싶은 말을 적어보세요!"
+- **사진** (선택) — 제목 옆 작은 클립 아이콘으로 추가, 최대 5장
+- 작성 시 작성자의 공강 시간표가 자동으로 매칭에 반영
+
+### 카드 디자인
+
+- **사진 있는 게시물** — 4:3 비율 커버 이미지 + 그라데이션 오버레이
+- **사진 없는 게시물** — 그라데이션 배경 + 제목 중심 슬림 카드
+- **공강 매칭 배지** — 나와 공강이 겹치면 [⏰ 공강 일치!] 표시
 
 ---
 
 ## 실시간 채팅 시스템
+
+### 채팅 진입 경로
+
+1. **게시물 상세** — "채팅하기" 버튼으로 그룹/1:1 채팅 시작
+2. **공강 유저 카드** — 홈 화면에서 카드 클릭으로 바로 1:1 다이렉트 채팅
 
 ### Socket.io 이벤트
 
@@ -301,18 +318,26 @@ MBTI                   학과
 | `background-light` | `#FFFAF5` | 라이트 모드 배경 |
 | `background-dark` | `#1A0F05` | 다크 모드 배경 |
 
+### 하단 네비게이션
+
+```
+[매칭]  [혜택]  [🏠 홈]  [채팅]  [내정보]
+                  ↑
+          중앙 플로팅 원형 버튼
+          (그라데이션 + 크기 강조)
+```
+
 ### 주요 UI 특징
 
-- **2열 인스타그램 스타일 그리드** -- 게시물 카드 컴팩트 레이아웃
-- **에브리타임 스타일 시간표** -- 교시 + 시간 표시, 점심 피크타임 뱃지
-- **메뉴별 그라데이션 카드** -- 사진 없는 게시물에 메뉴 카테고리별 배경색 자동 적용
-- **저녁+술 네온 효과** -- 저녁/야식 + 맥주/소주 조합 시 보라색 글로우 테두리
-- **상단 고정 밥약속 버튼** -- "오늘 밥 약속 제안하기" sticky 버튼
-- **Glass Morphism** -- `backdrop-blur` 헤더/네비게이션
-- **다크 모드** -- Tailwind `dark:` 클래스 전체 지원
-- **스켈레톤 UI** -- Render 콜드 스타트(~90초) 대비 로딩 UX
-- **Pull-to-Refresh** -- 메인 피드 터치 새로고침
-- **익명 아이콘** -- 프로필 사진 대신 그라데이션 아이콘으로 통일
+- **2열 인스타그램 스타일 그리드** — 게시물 카드 컴팩트 레이아웃
+- **시간표 직접 입력** — 월~금, 09:00~21:00 (13교시) 그리드, 저녁 시간대 포함
+- **공강 친구 가로 슬라이더** — 닉네임 + MBTI + 메뉴 겹침 + "채팅하기" 버튼
+- **메신저 스타일 게시물 작성** — 제목 + 내용 + 클립 아이콘 사진 첨부
+- **Glass Morphism** — `backdrop-blur` 헤더/네비게이션
+- **다크 모드** — Tailwind `dark:` 클래스 전체 지원
+- **스켈레톤 UI** — Render 콜드 스타트(~90초) 대비 로딩 UX
+- **Pull-to-Refresh** — 메인 피드 터치 새로고침
+- **익명 아이콘** — 프로필 사진 대신 그라데이션 아이콘으로 통일
 
 ---
 
@@ -329,8 +354,8 @@ MBTI                   학과
 
 | Method | Endpoint | 설명 |
 |--------|----------|------|
-| GET | `/api/posts` | 게시물 목록 (페이지네이션) |
-| POST | `/api/posts` | 밥약속 작성 (사진 선택 사항) |
+| GET | `/api/posts` | 게시물 목록 (공강 겹침 우선 정렬) |
+| POST | `/api/posts` | 약속 제안 (제목 필수, 내용/사진 선택) |
 | GET | `/api/posts/:id` | 게시물 상세 |
 | PUT | `/api/posts/:id` | 게시물 수정 |
 | DELETE | `/api/posts/:id` | 게시물 삭제 |
@@ -340,13 +365,13 @@ MBTI                   학과
 
 | Method | Endpoint | 설명 |
 |--------|----------|------|
-| GET | `/api/users/match` | 현재 공강인 친구 매칭 (시간표 + 메뉴 취향) |
+| GET | `/api/users/match` | 실시간 공강 친구 (시간표 + 메뉴 취향, 13교시 대응) |
 
 ### 채팅
 
 | Method | Endpoint | 설명 |
 |--------|----------|------|
-| POST | `/api/chat/rooms` | 채팅방 생성/조회 |
+| POST | `/api/chat/room` | 채팅방 생성/조회 (direct: 1:1, group: 그룹) |
 | GET | `/api/chat/rooms` | 내 채팅방 목록 |
 | GET | `/api/chat/rooms/:id/messages` | 메시지 조회 |
 | POST | `/api/chat/rooms/:id/leave` | 채팅방 나가기 (시스템 메시지 + 실시간 알림) |
@@ -356,9 +381,18 @@ MBTI                   학과
 
 | Method | Endpoint | 설명 |
 |--------|----------|------|
-| PUT | `/api/users/profile` | 프로필 수정 (닉네임/MBTI/성별/시간표 등) |
+| PUT | `/api/users/profile` | 프로필 수정 (닉네임/MBTI/성별/시간표/관심사 등) |
 | GET | `/api/users/check-nickname` | 닉네임 중복 확인 |
 | GET | `/api/users/:id` | 사용자 공개 프로필 (닉네임/MBTI/성별만) |
+
+### 이벤트 (비즈니스 혜택)
+
+| Method | Endpoint | 설명 |
+|--------|----------|------|
+| GET | `/api/events` | 이벤트 목록 |
+| POST | `/api/events` | 이벤트 생성 (비즈니스 계정) |
+| DELETE | `/api/events/:id` | 이벤트 삭제 |
+| POST | `/api/events/:id/like` | 이벤트 좋아요 토글 |
 
 ### 관리자
 
@@ -468,11 +502,13 @@ npm run dev          # localhost:5173
 | 경로 | 페이지 | 설명 |
 |------|--------|------|
 | `/login` | 로그인 | Google OAuth + 앱별 인앱 브라우저 분기 처리 |
-| `/` | 메인 피드 | 2열 그리드 게시물 + 공강 매칭 슬라이더 + 밥약속 제안 버튼 |
-| `/profile` | 프로필 | 닉네임 설정 + MBTI/성별 + 시간표 + 음식 취향 |
-| `/create-post` | 밥약속 작성 | 메뉴 복수선택 + 시간대 + 이미지(선택) + 미리보기 |
+| `/` | 메인 피드 | 공강 매칭 우선 정렬 + 실시간 공강 친구 슬라이더 + 약속 제안 버튼 |
+| `/profile` | 프로필 | 닉네임 + MBTI/성별 + 시간표(13교시) + 수강 과목 + 관심사 |
+| `/create-post` | 약속 제안 | 제목 + 내용(선택) + 사진 클립 첨부 |
 | `/posts/:id` | 게시물 상세 | 이미지 또는 그라데이션 헤더 + 채팅 CTA |
 | `/posts/:id/edit` | 게시물 수정 | 기존 데이터 편집 |
+| `/match` | 매칭 | 공강 기반 유저 매칭 |
+| `/benefits` | 혜택 | 비즈니스 이벤트/할인 정보 |
 | `/chat` | 채팅 목록 | 채팅방 리스트 + 미읽 뱃지 |
 | `/chat/:roomId` | 채팅방 | 실시간 1:1/그룹 채팅 |
 | `/admin` | 관리자 | 통계 + 유저관리 + 신고처리 |
@@ -486,6 +522,6 @@ npm run dev          # localhost:5173
 ---
 
 <p align="center">
-  <b>혼밥친구</b> -- 백석대학교 익명 공강 시간 밥 매칭 플랫폼<br>
+  <b>혼밥친구</b> — 백석대학교 익명 공강 시간 밥 매칭 플랫폼<br>
   Made By Ham YeongUk
 </p>
