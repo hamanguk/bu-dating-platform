@@ -65,21 +65,40 @@ exports.getMatches = async (req, res) => {
     }
 
     let users = await User.find(baseFilter)
-      .select('nickname mbti gender profileImage foodPreferences diningStyle timetable bio')
+      .select('nickname mbti gender profileImage foodPreferences diningStyle timetable bio majorCourses interests')
       .limit(50);
 
-    // foodPreferences 겹침 기반 정렬
+    // 겹침 데이터 계산
     const myPrefs = new Set(myUser?.foodPreferences || []);
+    const myCourses = new Set(myUser?.majorCourses || []);
+    const myTimetable = myUser?.timetable;
+
     users = users
       .map((u) => {
-        const overlap = (u.foodPreferences || []).filter((p) => myPrefs.has(p)).length;
-        return { user: u, overlap };
+        const foodOverlap = (u.foodPreferences || []).filter((p) => myPrefs.has(p)).length;
+        const courseOverlap = (u.majorCourses || []).filter((c) => myCourses.has(c));
+        // 공강 겹침 교시 수 계산
+        let freeOverlap = 0;
+        if (myTimetable && u.timetable) {
+          for (let d = 0; d < 5; d++) {
+            for (let p = 0; p < 13; p++) {
+              if (myTimetable[d]?.[p] && u.timetable[d]?.[p]) freeOverlap++;
+            }
+          }
+        }
+        return { user: u, foodOverlap, courseOverlap, freeOverlap };
       })
-      .sort((a, b) => b.overlap - a.overlap)
-      .map(({ user, overlap }) => ({
-        ...user.toObject(),
-        foodOverlap: overlap,
-      }));
+      .sort((a, b) => (b.foodOverlap + b.freeOverlap) - (a.foodOverlap + a.freeOverlap))
+      .map(({ user, foodOverlap, courseOverlap, freeOverlap }) => {
+        const obj = user.toObject();
+        delete obj.timetable; // 프라이버시: timetable 원본 비노출
+        return {
+          ...obj,
+          foodOverlap,
+          sharedCourses: courseOverlap,
+          freeOverlap,
+        };
+      });
 
     res.json({
       users,

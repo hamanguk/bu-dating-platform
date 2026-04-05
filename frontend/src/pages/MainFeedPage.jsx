@@ -179,7 +179,7 @@ export default function MainFeedPage() {
           {matchLoading ? (
             <div className="flex gap-3 overflow-hidden">
               {[...Array(3)].map((_, i) => (
-                <div key={i} className="w-[140px] h-[160px] rounded-2xl bg-gray-100 dark:bg-white/5 animate-pulse flex-shrink-0" />
+                <div key={i} className="w-[156px] h-[200px] rounded-2xl bg-gray-100 dark:bg-white/5 animate-pulse flex-shrink-0" />
               ))}
             </div>
           ) : matchUsers.length === 0 ? (
@@ -189,36 +189,75 @@ export default function MainFeedPage() {
             </div>
           ) : (
             <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-              {matchUsers.map((u) => (
-                <button
-                  key={u._id}
-                  onClick={async () => {
-                    try {
-                      const { data } = await createOrGetRoom({ type: 'direct', targetUserId: u._id });
-                      navigate(`/chat/${data._id}`);
-                    } catch {
-                      navigate(`/chat`);
-                    }
-                  }}
-                  className="flex-shrink-0 w-[140px] bg-white dark:bg-[#2d1e14] rounded-2xl p-3 shadow-card border border-gray-100/60 dark:border-white/5 hover:shadow-card-hover transition-all"
-                >
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 mx-auto mb-2 flex items-center justify-center">
-                    <span className="material-symbols-outlined text-primary text-xl">person</span>
-                  </div>
-                  <p className="text-xs font-bold dark:text-white truncate text-center">{u.nickname || '익명'}</p>
-                  <p className="text-[10px] text-gray-400 truncate text-center">
-                    {[u.mbti, u.gender === 'male' ? '남' : u.gender === 'female' ? '여' : ''].filter(Boolean).join(' / ') || ''}
-                  </p>
-                  {u.foodOverlap > 0 && (
-                    <span className="block mt-1 mx-auto w-fit px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-600 text-[9px] font-bold rounded-full">
-                      메뉴 {u.foodOverlap}개 겹침
-                    </span>
-                  )}
-                  <span className="block mt-1.5 mx-auto w-fit px-2.5 py-1 bg-primary/10 text-primary text-[9px] font-bold rounded-full flex items-center gap-0.5">
-                    <span className="material-symbols-outlined text-[11px]">chat</span>
-                    채팅하기
-                  </span>
-                </button>
+              {matchUsers.map((u, idx) => {
+                // 랜덤 아바타 이모지 + 배경색 (유저 ID 기반 고정)
+                const AVATARS = ['🐱','🐶','🐰','🦊','🐻','🐼','🐨','🦁','🐯','🐸','🐵','🦄','🐧','🐳','🐙','🦋','🍚','🍕','🍣','🍜','🍗','🍰','🧁','🥐'];
+                const BG_COLORS = [
+                  'from-orange-300 to-amber-200', 'from-rose-300 to-pink-200', 'from-violet-300 to-purple-200',
+                  'from-sky-300 to-blue-200', 'from-emerald-300 to-green-200', 'from-amber-300 to-yellow-200',
+                  'from-fuchsia-300 to-pink-200', 'from-teal-300 to-cyan-200',
+                ];
+                const hash = u._id.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+                const avatar = AVATARS[hash % AVATARS.length];
+                const bgColor = BG_COLORS[hash % BG_COLORS.length];
+
+                // 키워드 뱃지 (우선순위: 공통 수강 과목 > 공강 겹침 > 식성)
+                const FOOD_LABELS = { korean:'한식', chinese:'중식', japanese:'일식', western:'양식', cafe:'카페', chicken:'치킨', pizza:'피자', snack:'분식', beer:'맥주', soju:'소주' };
+                let badgeText = '';
+                let badgeStyle = '';
+                if (u.sharedCourses?.length > 0) {
+                  badgeText = `📚 ${u.sharedCourses[0]} 같이 수강`;
+                  badgeStyle = 'bg-blue-100 dark:bg-blue-900/30 text-blue-600';
+                } else if (u.freeOverlap > 0) {
+                  badgeText = `⏰ 공강 ${u.freeOverlap}시간 겹침`;
+                  badgeStyle = 'bg-green-100 dark:bg-green-900/30 text-green-600';
+                } else if (u.foodOverlap > 0) {
+                  const matchedFood = (u.foodPreferences || []).find((f) => FOOD_LABELS[f]);
+                  badgeText = matchedFood ? `🍽️ ${FOOD_LABELS[matchedFood]} 좋아함` : `🍽️ 메뉴 ${u.foodOverlap}개 겹침`;
+                  badgeStyle = 'bg-orange-100 dark:bg-orange-900/30 text-orange-600';
+                }
+
+                return (
+                  <button
+                    key={u._id}
+                    onClick={async () => {
+                      try {
+                        const { data } = await createOrGetRoom({ type: 'direct', targetUserId: u._id });
+                        navigate(`/chat/${data._id}`);
+                      } catch {
+                        navigate(`/chat`);
+                      }
+                    }}
+                    className="flex-shrink-0 w-[156px] bg-white dark:bg-[#2d1e14] rounded-2xl overflow-hidden shadow-card border border-gray-100/60 dark:border-white/5 hover:shadow-card-hover hover:-translate-y-0.5 transition-all"
+                  >
+                    {/* 아바타 영역 */}
+                    <div className={`h-16 bg-gradient-to-br ${bgColor} flex items-center justify-center`}>
+                      <span className="text-3xl">{avatar}</span>
+                    </div>
+
+                    {/* 정보 영역 */}
+                    <div className="p-2.5 space-y-1.5">
+                      <p className="text-xs font-bold dark:text-white truncate text-center">{u.nickname}</p>
+                      <p className="text-[10px] text-gray-400 truncate text-center">
+                        {[u.mbti, u.gender === 'male' ? '남' : u.gender === 'female' ? '여' : ''].filter(Boolean).join(' · ') || ''}
+                      </p>
+
+                      {/* 키워드 뱃지 */}
+                      {badgeText && (
+                        <p className={`text-center text-[9px] font-bold px-2 py-0.5 rounded-full mx-auto w-fit ${badgeStyle}`}>
+                          {badgeText}
+                        </p>
+                      )}
+
+                      {/* 채팅하기 버튼 */}
+                      <div className="flex items-center justify-center gap-1 mt-1 px-3 py-1.5 bg-primary text-white text-[10px] font-bold rounded-full">
+                        <span className="material-symbols-outlined text-[12px]">chat</span>
+                        채팅하기
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
               ))}
             </div>
           )}
