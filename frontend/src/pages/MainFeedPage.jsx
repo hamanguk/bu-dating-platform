@@ -189,7 +189,7 @@ export default function MainFeedPage() {
             </div>
           ) : (
             <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-              {matchUsers.map((u, idx) => {
+              {matchUsers.map((u) => {
                 // 랜덤 아바타 이모지 + 배경색 (유저 ID 기반 고정)
                 const AVATARS = ['🐱','🐶','🐰','🦊','🐻','🐼','🐨','🦁','🐯','🐸','🐵','🦄','🐧','🐳','🐙','🦋','🍚','🍕','🍣','🍜','🍗','🍰','🧁','🥐'];
                 const BG_COLORS = [
@@ -258,7 +258,6 @@ export default function MainFeedPage() {
                   </button>
                 );
               })}
-              ))}
             </div>
           )}
         </div>
